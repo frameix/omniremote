@@ -20,7 +20,7 @@ class LinuxTrayApp:
         self.local_url = local_url
         self.on_quit_callback = on_quit_callback
         self.qr_path = os.path.join(tempfile.gettempdir(), "omniremote_qr.png")
-        self.icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "omniremote.png")
+        self.icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "omniremote-app.png")
 
         self._generate_qr()
         self._build_floating_window()
