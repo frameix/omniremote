@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>OmniRemote</title>
+  <meta name="theme-color" content="#090a0f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --card-bg: rgba(22, 24, 35, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f2fe;
+      --accent-blue: #4facfe;
+      --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --text: #f1f5f9;
+      --text-dim: #94a3b8;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      height: 100vh;
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      touch-action: none;
+    }
+
+    header {
+      height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(9, 10, 15, 0.9);
+      backdrop-filter: blur(12px);
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.3px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+      transition: all 0.3s ease;
+    }
+
+    .status-dot.connected {
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .sens-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    main {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tab-content {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .tab-content.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    /* Tab 1: Trackpad */
+    #tab-trackpad {
+      padding: 12px;
+      gap: 10px;
+    }
+
+    .workspace-bar {
+      display: flex;
+      gap: 8px;
+      height: 40px;
+    }
+
+    .ws-btn {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+
+    .ws-btn:active, .ws-btn.active-glow {
+      background: rgba(0, 242, 254, 0.22);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 18px rgba(0, 242, 254, 0.45);
+      transform: scale(0.96);
+    }
+
+    #touchpad-surface {
+      flex: 1;
+      background: radial-gradient(circle at center, rgba(30, 35, 55, 0.4) 0%, rgba(15, 18, 28, 0.85) 100%);
+      border: 1px solid rgba(79, 172, 254, 0.25);
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6);
+      transition: border-color 0.2s ease;
+    }
+
+    #touchpad-surface.dragging {
+      border-color: var(--accent-cyan);
+      box-shadow: inset 0 0 30px rgba(0, 242, 254, 0.3);
+    }
+
+    .hud-gesture {
+      position: absolute;
+      top: 16px;
+      background: rgba(0, 242, 254, 0.2);
+      border: 1px solid var(--accent-cyan);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      z-index: 5;
+    }
+
+    .hud-gesture.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .touchpad-hint {
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.6;
+      pointer-events: none;
+    }
+
+    .touchpad-hint b {
+      color: rgba(0, 242, 254, 0.85);
+    }
+
+    /* Actions Bar */
+    .quick-copy-bar {
+      display: flex;
+      gap: 8px;
+      height: 38px;
+    }
+
+    .action-pill-btn {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .action-pill-btn:active {
+      background: rgba(79, 172, 254, 0.2);
+      transform: scale(0.96);
+    }
+
+    /* Bottom Click Buttons */
+    .click-bar {
+      height: 62px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .mouse-btn {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 16px;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.08s ease;
+    }
+
+    .mouse-btn.active, .mouse-btn:active {
+      background: rgba(0, 242, 254, 0.25);
+      border-color: var(--accent-cyan);
+      color: #fff;
+      transform: scale(0.97);
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.35);
+    }
+
+    /* Tab 2: Presenter */
+    #tab-presenter {
+      padding: 16px;
+      gap: 14px;
+      overflow-y: auto;
+    }
+
+    .timer-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .timer-display {
+      font-size: 26px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .timer-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .timer-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .slide-main-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      flex: 1;
+      min-height: 200px;
+    }
+
+    .btn-slide {
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 22px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      transition: all 0.12s ease;
+      position: relative;
+    }
+
+    .btn-slide:active, .btn-slide.active-glow {
+      transform: scale(0.95);
+      background: rgba(0, 242, 254, 0.22);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 32px rgba(0, 242, 254, 0.6);
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .btn-small {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      color: var(--text);
+      padding: 10px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-small:active {
+      transform: scale(0.95);
+      background: rgba(79, 172, 254, 0.2);
+    }
+
+    /* Tab 3: Teclado en Vivo con Delta Tracking */
+    #tab-keyboard {
+      padding: 16px;
+      gap: 14px;
+      overflow-y: auto;
+    }
+
+    .live-keyboard-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .live-keyboard-card.focused {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 24px rgba(0, 242, 254, 0.2);
+      background: rgba(0, 242, 254, 0.03);
+    }
+
+    .card-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-badge {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .live-pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 6px var(--accent-cyan);
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .badge-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .chat-input-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .live-input-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    #live-keyboard-input {
+      width: 100%;
+      min-height: 48px;
+      max-height: 190px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 13px 40px 13px 14px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 15px;
+      line-height: 1.45;
+      resize: none;
+      overflow-y: hidden;
+      box-sizing: border-box;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+
+    #live-keyboard-input::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    #live-keyboard-input::-webkit-scrollbar-thumb {
+      background: rgba(0, 242, 254, 0.35);
+      border-radius: 4px;
+    }
+
+    #live-keyboard-input::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #live-keyboard-input:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+      background: rgba(0, 0, 0, 0.65);
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.15);
+    }
+
+    .btn-clear-inline {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text-dim);
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-clear-inline:active {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+
+    .btn-send-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #00f2fe, #4facfe);
+      color: #050b14;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(0, 242, 254, 0.35);
+      transition: transform 0.1s, box-shadow 0.15s;
+    }
+
+    .btn-send-circle:active {
+      transform: scale(0.92);
+      box-shadow: 0 2px 8px rgba(0, 242, 254, 0.6);
+    }
+
+    .live-hint-text {
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: -2px;
+    }
+
+    .accessory-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: var(--text-dim);
+      margin-top: 4px;
+      margin-bottom: -4px;
+    }
+
+    .accessory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    /* Bottom Navigation */
+    nav {
+      height: 60px;
+      display: flex;
+      border-top: 1px solid var(--card-border);
+      background: rgba(9, 10, 15, 0.95);
+      backdrop-filter: blur(16px);
+      padding-bottom: env(safe-area-inset-bottom);
+      z-index: 10;
+    }
+
+    .nav-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .nav-btn.active {
+      color: var(--accent-cyan);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div id="status-dot" class="status-dot"></div>
+      <span>OmniRemote</span>
+    </div>
+    <div class="top-controls">
+      <span>Sens:</span>
+      <button class="sens-btn" id="btn-sens">1.6x</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- TAB 1: TRACKPAD -->
+    <div id="tab-trackpad" class="tab-content active">
+      <div class="workspace-bar">
+        <button class="ws-btn" id="btn-ws-prev">◀ Escritorio Anterior</button>
+        <button class="ws-btn" id="btn-ws-next">Escritorio Siguiente ▶</button>
+      </div>
+
+      <div id="touchpad-surface">
+        <div id="hud-gesture" class="hud-gesture">⚡ Gestos</div>
+        <div class="touchpad-hint" id="trackpad-hint">
+          <b>Tap + Tap y Arrastrar:</b> Seleccionar texto<br>
+          <b>Sostener Clic Izq:</b> Seleccionar con otro dedo<br>
+          <b>Pellizco (2 dedos):</b> Zoom In / Out<br>
+          <b>2 dedos swipe:</b> Scroll vertical / horiz
+        </div>
+      </div>
+
+      <div class="quick-copy-bar">
+        <button class="action-pill-btn" id="btn-quick-copy">📋 Copiar (Inteligente)</button>
+        <button class="action-pill-btn" id="btn-quick-paste">📄 Pegar (Inteligente)</button>
+      </div>
+
+      <!-- Barra de Clics Físicos -->
+      <div class="click-bar">
+        <button class="mouse-btn" id="btn-left-click">🖱️ Clic Izquierdo (Sostener)</button>
+        <button class="mouse-btn" id="btn-right-click">Clic Derecho</button>
+      </div>
+    </div>
+
+    <!-- TAB 2: TECLADO EN VIVO CON DELTA TRACKING -->
+    <div id="tab-keyboard" class="tab-content">
+      
+      <!-- Card: Entrada en Vivo -->
+      <div class="live-keyboard-card" id="live-keyboard-card">
+        <div class="card-header-bar">
+          <div class="card-badge">
+            <span class="live-pulse"></span>
+            <span>Teclado en Vivo (PC en tiempo real)</span>
+          </div>
+          <span class="badge-sub" id="live-char-status">Listo</span>
+        </div>
+
+        <div class="chat-input-bar">
+          <div class="live-input-wrapper">
+            <textarea 
+              id="live-keyboard-input" 
+              rows="1"
+              placeholder="Toca aquí para escribir directamente en tu laptop..." 
+              autocomplete="off" 
+              autocorrect="off" 
+              autocapitalize="none" 
+              spellcheck="false"></textarea>
+            <button class="btn-clear-inline" id="btn-clear-input" title="Limpiar línea">✕</button>
+          </div>
+          <button class="btn-send-circle" id="btn-send-circle" title="Enviar / Ejecutar (Enter)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="live-hint-text">
+          <span>⚡ Cada letra, borrado o Enter se transmite a tu laptop al instante.</span>
+        </div>
+      </div>
+
+      <!-- Barra de Accesorios de Hardware -->
+      <div class="accessory-title">Teclas Rápidas de Hardware</div>
+
+      <div class="accessory-grid">
+        <button class="btn-small" data-key="Escape"><span style="font-size: 16px;">⎋</span><span>Esc</span></button>
+        <button class="btn-small" data-key="Tab"><span style="font-size: 16px;">⇥</span><span>Tab</span></button>
+        <button class="btn-small" data-key="BackSpace"><span style="font-size: 16px;">⌫</span><span>Borrar</span></button>
+        <button class="btn-small" data-key="Return"><span style="font-size: 16px;">↵</span><span>Enter</span></button>
+
+        <button class="btn-small" data-key="Up"><span style="font-size: 16px;">↑</span><span>Arriba</span></button>
+        <button class="btn-small" data-key="Down"><span style="font-size: 16px;">↓</span><span>Abajo</span></button>
+        <button class="btn-small" data-key="Left"><span style="font-size: 16px;">←</span><span>Izquierda</span></button>
+        <button class="btn-small" data-key="Right"><span style="font-size: 16px;">→</span><span>Derecha</span></button>
+
+        <button class="btn-small" id="btn-ctrl-c"><span style="font-size: 13px; font-weight:700;">SIGINT</span><span>Ctrl+C</span></button>
+        <button class="btn-small" data-key="space"><span style="font-size: 16px;">␣</span><span>Espacio</span></button>
+        <button class="btn-small" id="btn-smart-copy"><span style="font-size: 14px;">📋</span><span>Copiar</span></button>
+        <button class="btn-small" id="btn-smart-paste"><span style="font-size: 14px;">📄</span><span>Pegar</span></button>
+
+        <button class="btn-small" id="btn-ctrl-shift-c" style="grid-column: span 2;"><span style="font-size: 11px; font-weight:700;">Terminal</span><span>Ctrl+Shift+C</span></button>
+        <button class="btn-small" id="btn-ctrl-shift-v" style="grid-column: span 2;"><span style="font-size: 11px; font-weight:700;">Terminal</span><span>Ctrl+Shift+V</span></button>
+      </div>
+    </div>
+
+    <!-- TAB 3: DIAPOSITIVAS -->
+    <div id="tab-presenter" class="tab-content">
+      <div class="timer-card">
+        <div>
+          <div style="font-size: 10px; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Cronómetro</div>
+          <div class="timer-display" id="timer-text">00:00</div>
+        </div>
+        <div class="timer-actions">
+          <button class="timer-btn" id="btn-timer-toggle">Iniciar</button>
+          <button class="timer-btn" id="btn-timer-reset">Reset</button>
+        </div>
+      </div>
+
+      <div class="slide-main-buttons">
+        <button class="btn-slide" id="btn-slide-prev">
+          <span style="font-size: 36px;">⬅️</span>
+          <span>ANTERIOR</span>
+        </button>
+        <button class="btn-slide" id="btn-slide-next">
+          <span style="font-size: 36px;">➡️</span>
+          <span>SIGUIENTE</span>
+        </button>
+      </div>
+
+      <div class="action-grid">
+        <button class="btn-small" id="btn-f5"><span style="font-size: 16px;">🖥️</span><span>Presentar</span></button>
+        <button class="btn-small" id="btn-esc"><span style="font-size: 16px;">❌</span><span>Salir (Esc)</span></button>
+        <button class="btn-small" id="btn-home"><span style="font-size: 16px;">⏮️</span><span>Diapo 1</span></button>
+        <button class="btn-small" id="btn-end"><span style="font-size: 16px;">⏭️</span><span>Fin Diapo</span></button>
+      </div>
+
+      <div class="action-grid">
+        <button class="btn-small" id="btn-vol-down"><span style="font-size: 16px;">🔉</span><span>Vol -</span></button>
+        <button class="btn-small" id="btn-vol-up"><span style="font-size: 16px;">🔊</span><span>Vol +</span></button>
+        <button class="btn-small" id="btn-vol-mute"><span style="font-size: 16px;">🔇</span><span>Mute</span></button>
+        <button class="btn-small" id="btn-media-toggle"><span style="font-size: 16px;">⏯️</span><span>Música</span></button>
+      </div>
+    </div>
+  </main>
+
+  <nav>
+    <button class="nav-btn active" data-tab="tab-trackpad">
+      <span style="font-size: 18px;">🖱️</span>
+      <span>Trackpad</span>
+    </button>
+    <button class="nav-btn" data-tab="tab-keyboard">
+      <span style="font-size: 18px;">⌨️</span>
+      <span>Teclado</span>
+    </button>
+    <button class="nav-btn" data-tab="tab-presenter">
+      <span style="font-size: 18px;">📽️</span>
+      <span>Diapositivas</span>
+    </button>
+  </nav>
+
+  <script>
+    // --- Screen Wake Lock ---
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
+      } catch (e) {}
+    }
+    requestWakeLock();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') requestWakeLock();
+    });
+
+    // --- WebSocket Manager con Heartbeat ---
+    let ws = null;
+    const statusDot = document.getElementById('status-dot');
+    let pingInterval = null;
+
+    function connectWS() {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${location.host}/ws`);
+
+      ws.onopen = () => {
+        statusDot.classList.add('connected');
+        if (pingInterval) clearInterval(pingInterval);
+        pingInterval = setInterval(() => send({ type: 'ping' }), 3000);
+      };
+
+      ws.onclose = () => {
+        statusDot.classList.remove('connected');
+        if (pingInterval) clearInterval(pingInterval);
+        setTimeout(connectWS, 1000);
+      };
+
+      ws.onerror = () => {
+        statusDot.classList.remove('connected');
+      };
+    }
+
+    connectWS();
+
+    function send(data) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(data));
+      }
+    }
+
+    function haptic(ms = 25) {
+      if (navigator.vibrate) navigator.vibrate(ms);
+    }
+
+    // --- Tab Switching ---
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+        haptic(15);
+      });
+    });
+
+    // --- Sensitivity Control ---
+    let sensitivity = parseFloat(localStorage.getItem('sens') || '1.6');
+    const sensBtn = document.getElementById('btn-sens');
+    sensBtn.textContent = `${sensitivity}x`;
+    sensBtn.addEventListener('click', () => {
+      if (sensitivity === 1.0) sensitivity = 1.6;
+      else if (sensitivity === 1.6) sensitivity = 2.2;
+      else if (sensitivity === 2.2) sensitivity = 3.0;
+      else sensitivity = 1.0;
+      localStorage.setItem('sens', sensitivity);
+      sensBtn.textContent = `${sensitivity}x`;
+      haptic(20);
+    });
+
+    // --- HUD Feedback ---
+    const hud = document.getElementById('hud-gesture');
+    let hudTimeout;
+    function showHUD(text) {
+      hud.textContent = text;
+      hud.classList.add('show');
+      clearTimeout(hudTimeout);
+      hudTimeout = setTimeout(() => hud.classList.remove('show'), 1200);
+    }
+
+    // --- Efecto Visual de Brillo al pulsar ---
+    function flashElement(el) {
+      if (!el) return;
+      el.classList.add('active-glow');
+      setTimeout(() => el.classList.remove('active-glow'), 180);
+    }
+
+    // --- Quick Workspace Buttons (Sin notificaciones intrusivas, solo brillo y háptico) ---
+    const btnWsPrev = document.getElementById('btn-ws-prev');
+    const btnWsNext = document.getElementById('btn-ws-next');
+
+    btnWsPrev.addEventListener('click', () => {
+      send({ type: 'gesture', action: 'workspace_prev' });
+      flashElement(btnWsPrev);
+      haptic(35);
+    });
+
+    btnWsNext.addEventListener('click', () => {
+      send({ type: 'gesture', action: 'workspace_next' });
+      flashElement(btnWsNext);
+      haptic(35);
+    });
+
+    // --- Copiar / Pegar Inteligente (Detecta Terminal vs GUI) ---
+    document.getElementById('btn-quick-copy').addEventListener('click', () => {
+      send({ type: 'smart_copy' });
+      showHUD('📋 Copiado (Auto-detect)');
+      haptic(25);
+    });
+
+    document.getElementById('btn-quick-paste').addEventListener('click', () => {
+      send({ type: 'smart_paste' });
+      showHUD('📄 Pegado (Auto-detect)');
+      haptic(25);
+    });
+
+    // --- Gesto 2: Clic Izquierdo Físico Sostenido con el Pulgar ---
+    const btnLeft = document.getElementById('btn-left-click');
+    let isHoldingLeftButton = false;
+
+    btnLeft.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      isHoldingLeftButton = true;
+      btnLeft.classList.add('active');
+      send({ type: 'down', btn: 'left' });
+      surface.classList.add('dragging');
+      showHUD('🖱️ Clic sostenido: Arrastra en trackpad');
+      haptic(30);
+    }, { passive: false });
+
+    function releaseLeftButton() {
+      if (isHoldingLeftButton) {
+        isHoldingLeftButton = false;
+        btnLeft.classList.remove('active');
+        send({ type: 'up', btn: 'left' });
+        if (!isTapDragging) surface.classList.remove('dragging');
+        haptic(15);
+      }
+    }
+
+    btnLeft.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      releaseLeftButton();
+    }, { passive: false });
+
+    btnLeft.addEventListener('touchcancel', () => {
+      releaseLeftButton();
+    });
+
+    document.getElementById('btn-right-click').addEventListener('click', () => {
+      send({ type: 'click', btn: 'right' });
+      haptic(30);
+    });
+
+    // --- Gesto 1 y Superficie del Trackpad ---
+    const surface = document.getElementById('touchpad-surface');
+    let lastX = 0, lastY = 0;
+    let touchStartTime = 0;
+    let hasMoved = false;
+
+    // Tap-and-Drag State Machine (Estilo libinput de MacBook / ThinkPad)
+    let tapTimeout = null;
+    let waitingSecondTap = false;
+    let isTapDragging = false;
+
+    // Pinch Zoom & Scroll Variables
+    let initialPinchDist = 0;
+    let lastPinchDist = 0;
+    let initialAvgY = 0;
+    let lastAvgY = 0;
+    let isPinching = false;
+    let lastZoomTime = 0;
+
+    // 3 Finger Swipe
+    let threeFingerStartX = 0;
+    let gestureFired = false;
+
+    surface.addEventListener('touchstart', (e) => {
+      const now = Date.now();
+      touchStartTime = now;
+      hasMoved = false;
+      gestureFired = false;
+
+      // CRUCIAL: Usamos targetTouches para aislar solo los dedos dentro de la superficie
+      const touches = e.targetTouches;
+
+      if (touches.length === 1) {
+        lastX = touches[0].clientX;
+        lastY = touches[0].clientY;
+
+        if (waitingSecondTap) {
+          clearTimeout(tapTimeout);
+          waitingSecondTap = false;
+          isTapDragging = true;
+          send({ type: 'down', btn: 'left' });
+          surface.classList.add('dragging');
+          showHUD('📝 Seleccionando texto...');
+          haptic(35);
+        }
+      } else if (touches.length === 2) {
+        if (waitingSecondTap) {
+          clearTimeout(tapTimeout);
+          waitingSecondTap = false;
+        }
+
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        initialPinchDist = Math.hypot(dx, dy);
+        lastPinchDist = initialPinchDist;
+
+        initialAvgY = (touches[0].clientY + touches[1].clientY) / 2;
+        lastAvgY = initialAvgY;
+        isPinching = false;
+      } else if (touches.length >= 3) {
+        if (waitingSecondTap) {
+          clearTimeout(tapTimeout);
+          waitingSecondTap = false;
+        }
+
+        let sumX = 0;
+        const count = Math.min(touches.length, 4);
+        for (let i = 0; i < count; i++) sumX += touches[i].clientX;
+        threeFingerStartX = sumX / count;
+      }
+    }, { passive: false });
+
+    surface.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+
+      // Usamos targetTouches: NUNCA se confunde con el pulgar en el botón inferior!
+      const touches = e.targetTouches;
+
+      // 1 Dedo en la superficie del trackpad: Mover cursor o Arrastrar
+      if (touches.length === 1) {
+        const cx = touches[0].clientX;
+        const cy = touches[0].clientY;
+
+        const activeSens = (isTapDragging || isHoldingLeftButton) ? Math.max(1.0, sensitivity * 0.75) : sensitivity;
+        const dx = (cx - lastX) * activeSens;
+        const dy = (cy - lastY) * activeSens;
+
+        if (Math.abs(dx) > 0.4 || Math.abs(dy) > 0.4) {
+          hasMoved = true;
+          send({ type: 'move', dx: Math.round(dx), dy: Math.round(dy) });
+          lastX = cx;
+          lastY = cy;
+        }
+      }
+      // 2 Dedos simultáneos EN la superficie: Pellizco (Zoom) o Scroll
+      else if (touches.length === 2) {
+        hasMoved = true;
+        const t0 = touches[0];
+        const t1 = touches[1];
+
+        const currentDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+        const currentAvgY = (t0.clientY + t1.clientY) / 2;
+
+        const distDiffFromStart = currentDist - initialPinchDist;
+        const yDiffFromStart = currentAvgY - initialAvgY;
+
+        // Si la distancia entre dedos varía más que el desplazamiento vertical -> PELLIZCO
+        if (Math.abs(distDiffFromStart) > Math.abs(yDiffFromStart) * 1.3 && Math.abs(distDiffFromStart) > 18) {
+          isPinching = true;
+        }
+
+        if (isPinching) {
+          const pinchDelta = currentDist - lastPinchDist;
+          const now = Date.now();
+
+          if (Math.abs(pinchDelta) > 10 && now - lastZoomTime > 75) {
+            if (pinchDelta > 0) {
+              send({ type: 'zoom', dir: 'in' });
+              showHUD('🔍 Zoom In');
+            } else {
+              send({ type: 'zoom', dir: 'out' });
+              showHUD('🔍 Zoom Out');
+            }
+            haptic(14);
+            lastPinchDist = currentDist;
+            lastZoomTime = now;
+          }
+        } else {
+          const stepY = currentAvgY - lastAvgY;
+          if (Math.abs(stepY) > 8) {
+            const scrollStep = stepY > 0 ? 1 : -1;
+            send({ type: 'scroll', dy: scrollStep });
+            lastAvgY = currentAvgY;
+          }
+        }
+      }
+      // 3 Dedos: Swipe de escritorios
+      else if (touches.length >= 3 && !gestureFired) {
+        let sumX = 0;
+        const count = Math.min(touches.length, 4);
+        for (let i = 0; i < count; i++) sumX += touches[i].clientX;
+        const currentX = sumX / count;
+        const deltaX = currentX - threeFingerStartX;
+
+        if (Math.abs(deltaX) > 40) {
+          gestureFired = true;
+          if (deltaX < 0) {
+            send({ type: 'gesture', action: 'workspace_next' });
+          } else {
+            send({ type: 'gesture', action: 'workspace_prev' });
+          }
+          haptic(40);
+        }
+      }
+    }, { passive: false });
+
+    surface.addEventListener('touchend', (e) => {
+      const duration = Date.now() - touchStartTime;
+
+      if (isTapDragging) {
+        isTapDragging = false;
+        send({ type: 'up', btn: 'left' });
+        if (!isHoldingLeftButton) surface.classList.remove('dragging');
+        showHUD('✓ Selección soltada');
+        haptic(15);
+        return;
+      }
+
+      const touches = e.targetTouches;
+      if (!hasMoved && duration < 200 && touches.length === 0) {
+        waitingSecondTap = true;
+        clearTimeout(tapTimeout);
+        tapTimeout = setTimeout(() => {
+          if (waitingSecondTap) {
+            send({ type: 'click', btn: 'left' });
+            waitingSecondTap = false;
+            haptic(20);
+          }
+        }, 180);
+      }
+    });
+
+    // --- Presentation Controls (Brillo inmediato, sin popups innecesarios) ---
+    const btnSlideNext = document.getElementById('btn-slide-next');
+    const btnSlidePrev = document.getElementById('btn-slide-prev');
+    const btnF5 = document.getElementById('btn-f5');
+    const btnEsc = document.getElementById('btn-esc');
+    const btnHome = document.getElementById('btn-home');
+    const btnEnd = document.getElementById('btn-end');
+
+    btnSlideNext.addEventListener('click', () => {
+      send({ type: 'key', key: 'Right' });
+      flashElement(btnSlideNext);
+      haptic(30);
+    });
+
+    btnSlidePrev.addEventListener('click', () => {
+      send({ type: 'key', key: 'Left' });
+      flashElement(btnSlidePrev);
+      haptic(30);
+    });
+
+    btnF5.addEventListener('click', () => {
+      send({ type: 'smart_present' });
+      flashElement(btnF5);
+      haptic(25);
+    });
+
+    btnEsc.addEventListener('click', () => {
+      send({ type: 'key', key: 'Escape' });
+      flashElement(btnEsc);
+      haptic(25);
+    });
+
+    btnHome.addEventListener('click', () => {
+      send({ type: 'key', key: 'Home' });
+      flashElement(btnHome);
+      haptic(25);
+    });
+
+    btnEnd.addEventListener('click', () => {
+      send({ type: 'key', key: 'End' });
+      flashElement(btnEnd);
+      haptic(25);
+    });
+
+    const btnVolUp = document.getElementById('btn-vol-up');
+    const btnVolDown = document.getElementById('btn-vol-down');
+    const btnVolMute = document.getElementById('btn-vol-mute');
+    const btnMedia = document.getElementById('btn-media-toggle');
+
+    btnVolUp.addEventListener('click', () => {
+      send({ type: 'media', action: 'vol_up' });
+      flashElement(btnVolUp);
+      haptic(20);
+    });
+
+    btnVolDown.addEventListener('click', () => {
+      send({ type: 'media', action: 'vol_down' });
+      flashElement(btnVolDown);
+      haptic(20);
+    });
+
+    btnVolMute.addEventListener('click', () => {
+      send({ type: 'media', action: 'mute' });
+      flashElement(btnVolMute);
+      haptic(25);
+    });
+
+    btnMedia.addEventListener('click', () => {
+      send({ type: 'media', action: 'play_pause' });
+      flashElement(btnMedia);
+      haptic(25);
+    });
+
+    // --- Presentation Timer ---
+    let timerInterval = null;
+    let timerSeconds = 0;
+    const timerText = document.getElementById('timer-text');
+    const timerToggleBtn = document.getElementById('btn-timer-toggle');
+
+    timerToggleBtn.addEventListener('click', () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timerToggleBtn.textContent = 'Reanudar';
+      } else {
+        timerInterval = setInterval(() => {
+          timerSeconds++;
+          const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+          const secs = String(timerSeconds % 60).padStart(2, '0');
+          timerText.textContent = `${mins}:${secs}`;
+        }, 1000);
+        timerToggleBtn.textContent = 'Pausar';
+      }
+      haptic(20);
+    });
+
+    document.getElementById('btn-timer-reset').addEventListener('click', () => {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerSeconds = 0;
+      timerText.textContent = '00:00';
+      timerToggleBtn.textContent = 'Iniciar';
+      haptic(20);
+    });
+
+    // --- Live Typing Engine (Delta Tracking) ---
+    const liveInput = document.getElementById('live-keyboard-input');
+    const liveCard = document.getElementById('live-keyboard-card');
+    const liveCharStatus = document.getElementById('live-char-status');
+    const btnClearInput = document.getElementById('btn-clear-input');
+    let prevText = '';
+
+    // Auto-expansión dinámica vertical tipo WhatsApp (hasta 8 líneas con scroll interno)
+    const MIN_INPUT_HEIGHT = 48;  // 1 línea
+    const MAX_INPUT_HEIGHT = 190; // ~8 líneas (límite WhatsApp antes de volverse scrolleable)
+
+    function autoResizeInput() {
+      liveInput.style.height = 'auto';
+      const scrollH = liveInput.scrollHeight;
+      if (scrollH > MAX_INPUT_HEIGHT) {
+        liveInput.style.height = MAX_INPUT_HEIGHT + 'px';
+        liveInput.style.overflowY = 'auto';
+      } else {
+        liveInput.style.height = Math.max(scrollH, MIN_INPUT_HEIGHT) + 'px';
+        liveInput.style.overflowY = 'hidden';
+      }
+    }
+
+    liveInput.addEventListener('focus', () => {
+      liveCard.classList.add('focused');
+      liveCharStatus.textContent = 'En vivo';
+      liveCharStatus.style.color = 'var(--accent-cyan)';
+    });
+
+    liveInput.addEventListener('blur', () => {
+      liveCard.classList.remove('focused');
+      liveCharStatus.textContent = 'Listo';
+      liveCharStatus.style.color = 'var(--text-dim)';
+    });
+
+    const btnSendCircle = document.getElementById('btn-send-circle');
+
+    function submitAndClear() {
+      send({ type: 'key', key: 'Return' });
+      liveInput.value = '';
+      prevText = '';
+      autoResizeInput();
+      flashElement(btnSendCircle);
+      haptic(25);
+    }
+
+    btnSendCircle?.addEventListener('click', submitAndClear);
+
+    // Delta tracking matemáticamente preciso: cero lag, cero duplicación, sin podas destructivas
+    liveInput.addEventListener('input', () => {
+      const curr = liveInput.value;
+      autoResizeInput();
+
+      // 1. Encontrar la longitud del prefijo común
+      let prefixLen = 0;
+      const minLen = Math.min(prevText.length, curr.length);
+      while (prefixLen < minLen && prevText[prefixLen] === curr[prefixLen]) {
+        prefixLen++;
+      }
+
+      // 2. Si prevText era más largo que el prefijo, se borraron letras:
+      const backspaces = prevText.length - prefixLen;
+      for (let i = 0; i < backspaces; i++) {
+        send({ type: 'key', key: 'BackSpace' });
+      }
+
+      // 3. Si curr es más largo que el prefijo, se escribieron letras nuevas:
+      const addedText = curr.slice(prefixLen);
+      if (addedText.length > 0) {
+        send({ type: 'type', text: addedText });
+      }
+
+      prevText = curr;
+      haptic(10);
+    });
+
+    // Tecla Enter en teclado físico / atajos
+    liveInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey) {
+        e.preventDefault();
+        submitAndClear();
+      } else if (e.key === 'Backspace' && liveInput.value === '') {
+        send({ type: 'key', key: 'BackSpace' });
+        haptic(12);
+      }
+    });
+
+    // Botón para limpiar línea
+    btnClearInput?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      liveInput.value = '';
+      prevText = '';
+      autoResizeInput();
+      liveInput.focus();
+      haptic(15);
+    });
+
+    // Teclas directas de hardware de la barra de accesorios (sincronizadas bidireccionalmente)
+    document.querySelectorAll('#tab-keyboard .accessory-grid .btn-small[data-key]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-key');
+
+        // Mantener el texto visual del móvil 100% sincronizado con la laptop
+        if (key === 'BackSpace') {
+          if (liveInput.value.length > 0) {
+            liveInput.value = liveInput.value.slice(0, -1);
+            prevText = liveInput.value;
+            autoResizeInput();
+          }
+        } else if (key === 'space') {
+          liveInput.value += ' ';
+          prevText = liveInput.value;
+          autoResizeInput();
+        } else if (key === 'Return') {
+          liveInput.value = '';
+          prevText = '';
+          autoResizeInput();
+        }
+
+        send({ type: 'key', key: key });
+        flashElement(btn);
+        haptic(20);
+      });
+    });
+
+    // Ctrl+C (Interrumpir proceso / SIGINT)
+    document.getElementById('btn-ctrl-c')?.addEventListener('click', () => {
+      const btn = document.getElementById('btn-ctrl-c');
+      send({ type: 'combo', modifiers: ['ctrl'], key: 'c' });
+      flashElement(btn);
+      haptic(25);
+    });
+
+    // Smart Copy & Paste
+    document.getElementById('btn-smart-copy')?.addEventListener('click', () => {
+      const btn = document.getElementById('btn-smart-copy');
+      send({ type: 'smart_copy' });
+      flashElement(btn);
+      haptic(25);
+    });
+
+    document.getElementById('btn-smart-paste')?.addEventListener('click', () => {
+      const btn = document.getElementById('btn-smart-paste');
+      send({ type: 'smart_paste' });
+      flashElement(btn);
+      haptic(25);
+    });
+
+    // Terminal específico (Ctrl+Shift+C / V)
+    document.getElementById('btn-ctrl-shift-c')?.addEventListener('click', () => {
+      const btn = document.getElementById('btn-ctrl-shift-c');
+      send({ type: 'combo', modifiers: ['ctrl', 'shift'], key: 'c' });
+      flashElement(btn);
+      haptic(25);
+    });
+
+    document.getElementById('btn-ctrl-shift-v')?.addEventListener('click', () => {
+      const btn = document.getElementById('btn-ctrl-shift-v');
+      send({ type: 'combo', modifiers: ['ctrl', 'shift'], key: 'v' });
+      flashElement(btn);
+      haptic(25);
+    });
+  </script>
+</body>
+</html>

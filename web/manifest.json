@@ -1,0 +1,9 @@
+{
+  "name": "OmniRemote",
+  "short_name": "OmniRemote",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
+  "orientation": "portrait"
+}
