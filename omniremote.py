@@ -2,7 +2,7 @@
 """
 OmniRemote
 The 100% Local, Zero-Install Web Remote for Linux & Windows.
-https://github.com/marc77mz/omniremote
+https://github.com/frameix/omniremote
 """
 import argparse
 import asyncio

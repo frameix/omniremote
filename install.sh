@@ -6,12 +6,33 @@ set -e
 
 # Asegurar permisos de superusuario
 if [ "$EUID" -ne 0 ]; then
-    echo "==> Solicitando permisos de superusuario (sudo)..."
-    exec sudo bash "$0" "$@"
+    echo "==> OmniRemote requiere permisos de administrador para instalar archivos y reglas udev."
+    echo "==> Solicitando permisos con sudo..."
+    if [ -f "$0" ]; then
+        exec sudo bash "$0" "$@"
+    else
+        # Si se ejecutó por pipe: curl ... | bash
+        exec sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/frameix/omniremote/main/install.sh)" "$@"
+    fi
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || echo ".")")" 2>/dev/null && pwd || echo ".")"
 PREFIX="${PREFIX:-/usr/local}"
+REPO_URL="https://github.com/frameix/omniremote"
+CLEANUP_TEMP=0
+
+# Si no estamos en la carpeta del repositorio clonado (e.g. ejecución vía curl | bash)
+if [ ! -f "$SCRIPT_DIR/omniremote.py" ] || [ ! -d "$SCRIPT_DIR/core" ]; then
+    echo "-> Descargando la versión más reciente de OmniRemote desde GitHub..."
+    TMP_DIR=$(mktemp -d /tmp/omniremote-setup.XXXXXX)
+    CLEANUP_TEMP=1
+    if command -v git >/dev/null 2>&1; then
+        git clone --depth 1 "$REPO_URL.git" "$TMP_DIR" >/dev/null 2>&1
+    else
+        curl -fsSL "$REPO_URL/archive/refs/heads/main.tar.gz" | tar -xz -C "$TMP_DIR" --strip-components=1
+    fi
+    SCRIPT_DIR="$TMP_DIR"
+fi
 
 echo "=========================================================="
 echo "      🚀 Instalador de OmniRemote para Linux"
@@ -103,6 +124,11 @@ fi
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database -q "$PREFIX/share/applications" 2>/dev/null || true
     [ "$PREFIX" != "/usr" ] && update-desktop-database -q /usr/share/applications 2>/dev/null || true
+fi
+
+# Limpiar directorio temporal si se descargó vía pipe
+if [ "$CLEANUP_TEMP" -eq 1 ] && [ -n "$TMP_DIR" ] && [ -d "$TMP_DIR" ]; then
+    rm -rf "$TMP_DIR"
 fi
 
 echo ""

@@ -45,72 +45,77 @@
 
 ---
 
-## 📦 Instalación
+## 📦 Instalación Sencilla (Para cualquier usuario)
 
-### Método 1: Arch Linux / CachyOS / Manjaro (Recomendado)
+Tienes varias formas de instalar OmniRemote, desde un comando de una sola línea hasta paquetes nativos de Arch Linux.
 
-OmniRemote incluye configuración nativa para integrarse como paquete oficial de Arch Linux (`pacman`), con su lanzador de escritorio, iconos en el sistema y reglas de permisos de hardware sin necesidad de usar `sudo` para el teclado/ratón.
+### ⚡ Opción 1: Instalación en 1 Línea (Cualquier Linux)
 
-#### Opción A: Compilar e instalar con `makepkg`
+No necesitas clonar el repositorio manualmente ni lidiar con carpetas. Simplemente copia y pega este comando en tu terminal:
+
 ```bash
-git clone https://github.com/marc77mz/omniremote.git
-cd omniremote
+curl -fsSL https://raw.githubusercontent.com/frameix/omniremote/main/install.sh | sudo bash
+```
 
-# Compilar e instalar dependencias automáticamente:
+> **¿Qué hace este comando automáticamente?**
+> 1. Descarga e instala los archivos en `/usr/local/lib/omniremote`.
+> 2. Crea el comando `omniremote` en tu sistema (`/usr/local/bin`).
+> 3. Configura los permisos de hardware `/dev/uinput` vía udev (sin necesidad de reiniciar).
+> 4. Instala el icono oficial y el acceso directo para que aparezca en tu menú de aplicaciones.
+
+*Para desinstalarlo en cualquier momento:*
+```bash
+curl -fsSL https://raw.githubusercontent.com/frameix/omniremote/main/uninstall.sh | sudo bash
+```
+
+---
+
+### 🏹 Opción 2: Arch Linux / CachyOS / Manjaro (Nativo con `pacman`)
+
+Si utilizas Arch Linux o derivados, puedes instalarlo como cualquier programa oficial (como VS Code o Brave):
+
+#### A. Con tu AUR helper favorito (`paru` / `yay`):
+```bash
+paru -S omniremote-git
+# o
+yay -S omniremote-git
+```
+
+#### B. Directo con `pacman` (Precompilado desde GitHub Releases):
+`pacman` puede instalar paquetes directamente desde una URL sin tener que compilar nada:
+```bash
+sudo pacman -U https://github.com/frameix/omniremote/releases/latest/download/omniremote-1.0.0-1-any.pkg.tar.zst
+```
+
+#### C. Desde el repositorio clonado con `makepkg`:
+```bash
+git clone https://github.com/frameix/omniremote.git
+cd omniremote
 makepkg -si
 ```
 
-#### Opción B: Instalar el paquete precompilado
-```bash
-sudo pacman -U omniremote-1.0.0-1-any.pkg.tar.zst
-```
-
-*Para desinstalarlo en cualquier momento:*
+*Para desinstalarlo vía pacman:*
 ```bash
 sudo pacman -R omniremote
 ```
 
 ---
 
-### Método 2: Instalador Universal Linux (Ubuntu, Debian, Fedora, Mint, openSUSE)
+### 🚀 Opción 3: Modo Portable (Sin Instalar)
 
-Si utilizas otra distribución Linux, puedes usar el script de instalación universal:
-
-```bash
-git clone https://github.com/marc77mz/omniremote.git
-cd omniremote
-
-# Ejecutar el instalador con permisos de administrador:
-sudo ./install.sh
-```
-
-El instalador:
-1. Configura el binario en `/usr/local/bin/omniremote`.
-2. Instala la regla de udev `/etc/udev/rules.d/99-omniremote-uinput.rules` para dar acceso seguro a `/dev/uinput` al usuario de escritorio activo.
-3. Instala el lanzador de escritorio y los iconos del sistema.
-
-*Para desinstalarlo limpiamente:*
-```bash
-sudo ./uninstall.sh
-```
-
----
-
-### Método 3: Ejecución Portable (Sin Instalar)
-
-Puedes ejecutar OmniRemote directamente desde el repositorio sin necesidad de instalarlo en el sistema:
+Si prefieres probarlo directamente sin instalar nada en el sistema:
 
 #### En Linux:
 ```bash
-# Dependencias recomendadas:
-# Arch:   sudo pacman -S python python-gobject gtk3 libayatana-appindicator qrencode
-# Ubuntu: sudo apt install python3 python3-gi gir1.2-gtk-3.0 gir1.2-ayatanaappindicator3-0.1 qrencode
-
+git clone https://github.com/frameix/omniremote.git
+cd omniremote
 python3 omniremote.py
 ```
 
-#### En Windows:
+#### En Windows (10/11):
 ```cmd
+git clone https://github.com/frameix/omniremote.git
+cd omniremote
 python omniremote.py
 ```
 

@@ -1,0 +1,62 @@
+# Maintainer: Marco <marc77mz@gmail.com>
+pkgname=omniremote-git
+pkgver=1.0.0.r0.g21938b5
+pkgrel=1
+pkgdesc="Zero-install local Wi-Fi web remote control for Linux (Trackpad, Keyboard, Presenter)"
+arch=('any')
+url="https://github.com/frameix/omniremote"
+license=('MIT')
+depends=(
+    'python'
+    'python-gobject'
+    'gtk3'
+    'libayatana-appindicator'
+    'qrencode'
+)
+optdepends=(
+    'playerctl: Control de reproducción multimedia (Spotify, VLC, navegadores)'
+    'wireplumber: Control de volumen del sistema en PipeWire'
+    'wl-clipboard: Pegado desde el portapapeles en sesiones Wayland'
+    'xclip: Pegado desde el portapapeles en sesiones X11'
+)
+provides=('omniremote')
+conflicts=('omniremote')
+install=omniremote.install
+source=("$pkgname::git+https://github.com/frameix/omniremote.git#branch=main")
+md5sums=('SKIP')
+
+pkgver() {
+    cd "$pkgname"
+    git describe --long --tags 2>/dev/null | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g' ||
+    printf "1.0.0.r%s.g%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+package() {
+    cd "$pkgname"
+
+    # 1. Instalar componentes
+    install -dm755 "$pkgdir/usr/lib/omniremote"
+    cp -r core web omniremote.py "$pkgdir/usr/lib/omniremote/"
+    chmod 755 "$pkgdir/usr/lib/omniremote/omniremote.py"
+
+    find "$pkgdir/usr/lib/omniremote" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+
+    # 2. Binario
+    install -dm755 "$pkgdir/usr/bin"
+    ln -sf "/usr/lib/omniremote/omniremote.py" "$pkgdir/usr/bin/omniremote"
+
+    # 3. Reglas udev
+    install -Dm644 udev/99-omniremote-uinput.rules "$pkgdir/usr/lib/udev/rules.d/99-omniremote-uinput.rules"
+
+    # 4. Desktop entry
+    install -Dm644 omniremote.desktop "$pkgdir/usr/share/applications/omniremote.desktop"
+
+    # 5. Iconos
+    install -Dm644 core/ui/assets/omniremote-app.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/omniremote-app.svg"
+    install -Dm644 core/ui/assets/omniremote-app.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/omniremote-app.png"
+
+    # 6. Licencia
+    if [ -f LICENSE ]; then
+        install -Dm644 LICENSE "$pkgdir/usr/share/licenses/omniremote/LICENSE"
+    fi
+}

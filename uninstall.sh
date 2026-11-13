@@ -5,8 +5,13 @@
 set -e
 
 if [ "$EUID" -ne 0 ]; then
-    echo "==> Solicitando permisos de superusuario (sudo)..."
-    exec sudo bash "$0" "$@"
+    echo "==> OmniRemote requiere permisos de administrador para desinstalar."
+    echo "==> Solicitando permisos con sudo..."
+    if [ -f "$0" ]; then
+        exec sudo bash "$0" "$@"
+    else
+        exec sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/frameix/omniremote/main/uninstall.sh)" "$@"
+    fi
 fi
 
 PREFIX="${PREFIX:-/usr/local}"
