@@ -39,7 +39,7 @@ class LinuxTrayApp:
 
     def _build_floating_window(self):
         self.window = Gtk.Window(title="OmniRemote")
-        self.window.set_default_size(360, 480)
+        self.window.set_default_size(360, 500)
         self.window.set_position(Gtk.WindowPosition.CENTER)
         self.window.set_resizable(False)
 
@@ -49,7 +49,7 @@ class LinuxTrayApp:
             except Exception:
                 pass
 
-        # Intercept close button to hide to tray instead of quitting
+        # Intercept close event: Super+Q or window manager kill exits cleanly
         self.window.connect("delete-event", self._on_window_delete)
 
         # Modern Dark CSS
@@ -61,9 +61,26 @@ class LinuxTrayApp:
             font-family: system-ui, -apple-system, sans-serif;
         }
         .header-title {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 800;
             color: #00f2fe;
+        }
+        .btn-close-window {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #8b949e;
+            border-radius: 50%;
+            min-width: 28px;
+            min-height: 28px;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 0;
+            transition: all 0.2s ease;
+        }
+        .btn-close-window:hover {
+            background: rgba(248, 81, 73, 0.3);
+            border-color: #f85149;
+            color: #ff7b72;
         }
         .subtitle {
             font-size: 12px;
@@ -74,7 +91,7 @@ class LinuxTrayApp:
             background-color: #161b22;
             border: 1px solid #30363d;
             border-radius: 10px;
-            padding: 5px 8px 5px 14px;
+            padding: 6px 8px 6px 14px;
         }
         .url-text {
             font-size: 13px;
@@ -104,7 +121,7 @@ class LinuxTrayApp:
             font-size: 11px;
             color: #3fb950;
             font-weight: 600;
-            margin-top: 6px;
+            margin-top: 4px;
         }
         .btn-hide {
             background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
@@ -113,10 +130,24 @@ class LinuxTrayApp:
             border-radius: 8px;
             border: none;
             padding: 9px 18px;
-            margin-bottom: 14px;
         }
         .btn-hide:hover {
             opacity: 0.9;
+        }
+        .btn-quit-bottom {
+            background: transparent;
+            border: 1px solid rgba(248, 81, 73, 0.3);
+            color: #f85149;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 7px;
+            padding: 5px 12px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-quit-bottom:hover {
+            background: rgba(248, 81, 73, 0.15);
+            border-color: #f85149;
         }
         """
         css_provider.load_from_data(css)
@@ -130,26 +161,37 @@ class LinuxTrayApp:
         main_box.set_margin_start(20)
         main_box.set_margin_end(20)
         main_box.set_margin_top(12)
-        main_box.set_margin_bottom(12)
+        main_box.set_margin_bottom(10)
 
-        # Header Box with Logo + Title
-        header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        header_box.set_halign(Gtk.Align.CENTER)
-        header_box.set_margin_top(12)
+        # Top Bar: Logo + Title + Close Button [✕]
+        top_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        top_bar.set_margin_top(8)
 
+        # Left / Center brand box
+        brand_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        brand_box.set_halign(Gtk.Align.CENTER)
         if os.path.exists(self.icon_path):
             try:
-                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(self.icon_path, 30, 30, True)
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(self.icon_path, 28, 28, True)
                 img_logo = Gtk.Image.new_from_pixbuf(pixbuf)
-                header_box.pack_start(img_logo, False, False, 0)
+                brand_box.pack_start(img_logo, False, False, 0)
             except Exception:
                 pass
 
         lbl_title = Gtk.Label(label="OmniRemote")
         lbl_title.get_style_context().add_class("header-title")
-        header_box.pack_start(lbl_title, False, False, 0)
+        brand_box.pack_start(lbl_title, False, False, 0)
 
-        main_box.pack_start(header_box, False, False, 0)
+        top_bar.pack_start(brand_box, True, True, 0)
+
+        # Top-Right definitive close [✕] button
+        btn_close_app = Gtk.Button(label="✕")
+        btn_close_app.get_style_context().add_class("btn-close-window")
+        btn_close_app.set_tooltip_text("Cerrar y apagar OmniRemote definitivamente")
+        btn_close_app.connect("clicked", lambda _: self._quit(None))
+        top_bar.pack_end(btn_close_app, False, False, 0)
+
+        main_box.pack_start(top_bar, False, False, 0)
 
         lbl_sub = Gtk.Label(label="Escanea desde tu móvil (en la misma red WiFi)")
         lbl_sub.get_style_context().add_class("subtitle")
@@ -182,11 +224,17 @@ class LinuxTrayApp:
         self.lbl_status.get_style_context().add_class("status-badge")
         main_box.pack_start(self.lbl_status, False, False, 2)
 
-        # Hide to tray button
+        # Primary Action: Hide to tray
         btn_hide = Gtk.Button(label="Ocultar a la Barra (Tray)")
         btn_hide.get_style_context().add_class("btn-hide")
         btn_hide.connect("clicked", lambda _: self.window.hide())
-        main_box.pack_start(btn_hide, False, False, 8)
+        main_box.pack_start(btn_hide, False, False, 6)
+
+        # Secondary Action: Quit definitively
+        btn_quit = Gtk.Button(label="✕ Apagar Servidor y Salir")
+        btn_quit.get_style_context().add_class("btn-quit-bottom")
+        btn_quit.connect("clicked", lambda _: self._quit(None))
+        main_box.pack_start(btn_quit, False, False, 4)
 
         self.window.add(main_box)
 
@@ -238,7 +286,8 @@ class LinuxTrayApp:
         self.indicator.set_menu(menu)
 
     def _on_window_delete(self, widget, event):
-        self.window.hide()
+        # Si se cierra la ventana con Super+Q o kill del compositor, apagar definitivamente
+        self._quit(None)
         return True
 
     def _show_window(self, _):
