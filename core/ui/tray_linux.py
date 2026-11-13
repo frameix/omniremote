@@ -166,7 +166,6 @@ class LinuxTrayApp:
         url_box.get_style_context().add_class("url-box")
 
         lbl_url = Gtk.Label(label=self.local_url)
-        lbl_url.set_selectable(True)
         lbl_url.set_xalign(0.0)
         lbl_url.get_style_context().add_class("url-text")
         url_box.pack_start(lbl_url, True, True, 0)
