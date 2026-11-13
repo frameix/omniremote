@@ -39,7 +39,7 @@ class LinuxTrayApp:
 
     def _build_floating_window(self):
         self.window = Gtk.Window(title="OmniRemote")
-        self.window.set_default_size(360, 500)
+        self.window.set_default_size(360, 480)
         self.window.set_position(Gtk.WindowPosition.CENTER)
         self.window.set_resizable(False)
 
@@ -134,21 +134,6 @@ class LinuxTrayApp:
         .btn-hide:hover {
             opacity: 0.9;
         }
-        .btn-quit-bottom {
-            background: transparent;
-            border: 1px solid rgba(248, 81, 73, 0.3);
-            color: #f85149;
-            font-size: 11px;
-            font-weight: 600;
-            border-radius: 7px;
-            padding: 5px 12px;
-            margin-bottom: 8px;
-            transition: all 0.2s ease;
-        }
-        .btn-quit-bottom:hover {
-            background: rgba(248, 81, 73, 0.15);
-            border-color: #f85149;
-        }
         """
         css_provider.load_from_data(css)
         Gtk.StyleContext.add_provider_for_screen(
@@ -228,13 +213,7 @@ class LinuxTrayApp:
         btn_hide = Gtk.Button(label="Ocultar a la Barra (Tray)")
         btn_hide.get_style_context().add_class("btn-hide")
         btn_hide.connect("clicked", lambda _: self.window.hide())
-        main_box.pack_start(btn_hide, False, False, 6)
-
-        # Secondary Action: Quit definitively
-        btn_quit = Gtk.Button(label="✕ Apagar Servidor y Salir")
-        btn_quit.get_style_context().add_class("btn-quit-bottom")
-        btn_quit.connect("clicked", lambda _: self._quit(None))
-        main_box.pack_start(btn_quit, False, False, 4)
+        main_box.pack_start(btn_hide, False, False, 8)
 
         self.window.add(main_box)
 
