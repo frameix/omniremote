@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=OmniRemote
+GenericName=Remote Input Controller
+Comment=Zero-Install Web Remote for Trackpad, Keyboard & Slides
+Exec=omniremote
+Icon=omniremote-app
+Terminal=false
+Type=Application
+Categories=Utility;Network;RemoteAccess;
+Keywords=remote;touchpad;keyboard;presenter;control;trackpad;
+StartupWMClass=OmniRemote

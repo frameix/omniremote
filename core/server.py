@@ -32,7 +32,7 @@ class OmniServer:
         self.input_driver = input_driver
         self.desktop_backend = desktop_backend
         self.port = port
-        self.web_dir = web_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
+        self.web_dir = web_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "web")
         self.status_callback = status_callback
 
         self.action_queue = asyncio.Queue()

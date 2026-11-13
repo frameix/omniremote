@@ -1,0 +1,2 @@
+# OmniRemote - Grant access to /dev/uinput for logged-in desktop users
+KERNEL=="uinput", SUBSYSTEM=="misc", MODE="0660", GROUP="input", TAG+="uaccess", OPTIONS+="static_node=uinput"
