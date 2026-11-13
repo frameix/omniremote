@@ -101,9 +101,19 @@ sudo pacman -R omniremote
 
 ---
 
-### 🚀 Opción 3: Modo Portable (Sin Instalar)
+### 🪟 Opción 3: Windows (10 / 11)
 
-Si prefieres probarlo directamente sin instalar nada en el sistema:
+Para los usuarios de Windows no es necesario instalar Python ni usar la consola:
+
+1. Ve a la sección de **[Releases de GitHub](https://github.com/frameix/omniremote/releases/latest)** y descarga **`OmniRemote-Windows-x64.zip`**.
+2. Descomprime la carpeta (Clic derecho -> *Extraer todo*).
+3. Haz doble clic en **`OmniRemote.exe`**. Se abrirá automáticamente tu navegador web con el código QR listo para escanear con tu móvil.
+
+---
+
+### 💻 Opción 4: Ejecución desde el Código Fuente (Desarrolladores)
+
+Si prefieres ejecutarlo manualmente con Python:
 
 #### En Linux:
 ```bash
@@ -112,7 +122,7 @@ cd omniremote
 python3 omniremote.py
 ```
 
-#### En Windows (10/11):
+#### En Windows (con Python instalado):
 ```cmd
 git clone https://github.com/frameix/omniremote.git
 cd omniremote

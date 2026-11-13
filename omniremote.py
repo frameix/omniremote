@@ -12,7 +12,11 @@ import sys
 import threading
 
 # Add root directory to sys.path
-BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    BASE_DIR = sys._MEIPASS
+else:
+    BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
@@ -48,6 +52,7 @@ def main():
         input_driver=input_driver,
         desktop_backend=desktop_backend,
         port=args.port,
+        web_dir=os.path.join(BASE_DIR, "web"),
         status_callback=on_status_change
     )
 
@@ -72,10 +77,20 @@ def main():
         asyncio.run_coroutine_threadsafe(server.stop(), loop)
         loop.call_soon_threadsafe(loop.stop())
 
-    if args.cli or sys.platform == "win32":
-        # Modo terminal o Windows fallback
+    if args.cli:
         print(f"✓ OmniRemote ejecutándose en modo CLI: {local_url}")
         print("Presiona Ctrl+C para detener.")
+        try:
+            while server_thread.is_alive():
+                server_thread.join(timeout=1.0)
+        except KeyboardInterrupt:
+            shutdown()
+    elif sys.platform == "win32":
+        import webbrowser
+        print(f"✓ OmniRemote activo en Windows: {local_url}")
+        print("Abriendo navegador para mostrar código QR...")
+        webbrowser.open(local_url)
+        print("Presiona Ctrl+C en esta consola para detener el servidor.")
         try:
             while server_thread.is_alive():
                 server_thread.join(timeout=1.0)

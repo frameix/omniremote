@@ -1,0 +1,94 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows Executable
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --onefile --noconfirm --name OmniRemote --icon core/ui/assets/omniremote.ico --add-data "core;core" --add-data "web;web" omniremote.py
+
+      - name: Package Windows ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/OmniRemote.exe -DestinationPath OmniRemote-Windows-x64.zip
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: OmniRemote-Windows-x64.zip
+
+  build-linux-arch:
+    name: Build Arch Linux Package
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          pacman -Syu --noconfirm python python-gobject gtk3 libayatana-appindicator qrencode git
+
+      - name: Build package with makepkg
+        run: |
+          useradd -m builder
+          chown -R builder:builder .
+          su builder -c "makepkg -f"
+
+      - name: Upload Arch Package Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-pkg
+          path: "*.pkg.tar.zst"
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-windows, build-linux-arch]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-release
+
+      - name: Download Arch Package Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: arch-pkg
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            OmniRemote-Windows-x64.zip
+            *.pkg.tar.zst
+          draft: false
+          prerelease: false
+          generate_release_notes: true
