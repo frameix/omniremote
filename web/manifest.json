@@ -5,5 +5,12 @@
   "display": "standalone",
   "background_color": "#090a0f",
   "theme_color": "#090a0f",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }

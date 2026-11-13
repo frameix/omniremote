@@ -20,6 +20,7 @@ class LinuxTrayApp:
         self.local_url = local_url
         self.on_quit_callback = on_quit_callback
         self.qr_path = os.path.join(tempfile.gettempdir(), "omniremote_qr.png")
+        self.icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "omniremote.png")
 
         self._generate_qr()
         self._build_floating_window()
@@ -42,6 +43,12 @@ class LinuxTrayApp:
         self.window.set_position(Gtk.WindowPosition.CENTER)
         self.window.set_resizable(False)
 
+        if os.path.exists(self.icon_path):
+            try:
+                self.window.set_icon_from_file(self.icon_path)
+            except Exception:
+                pass
+
         # Intercept close button to hide to tray instead of quitting
         self.window.connect("delete-event", self._on_window_delete)
 
@@ -57,21 +64,41 @@ class LinuxTrayApp:
             font-size: 20px;
             font-weight: 800;
             color: #00f2fe;
-            margin-top: 16px;
         }
         .subtitle {
             font-size: 12px;
             color: #8b949e;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .url-box {
             background-color: #161b22;
             border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 8px 12px;
+            border-radius: 10px;
+            padding: 5px 8px 5px 14px;
+        }
+        .url-text {
             font-size: 13px;
             font-weight: 700;
             color: #4facfe;
+        }
+        .btn-copy {
+            background: rgba(0, 242, 254, 0.12);
+            border: 1px solid rgba(0, 242, 254, 0.35);
+            color: #00f2fe;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 12px;
+            transition: all 0.2s ease;
+        }
+        .btn-copy:hover {
+            background: rgba(0, 242, 254, 0.25);
+            border-color: #00f2fe;
+        }
+        .btn-copy.copied {
+            background: rgba(63, 185, 80, 0.2);
+            border-color: #3fb950;
+            color: #3fb950;
         }
         .status-badge {
             font-size: 11px;
@@ -85,8 +112,8 @@ class LinuxTrayApp:
             font-weight: 700;
             border-radius: 8px;
             border: none;
-            padding: 8px 18px;
-            margin-bottom: 16px;
+            padding: 9px 18px;
+            margin-bottom: 14px;
         }
         .btn-hide:hover {
             opacity: 0.9;
@@ -102,13 +129,27 @@ class LinuxTrayApp:
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         main_box.set_margin_start(20)
         main_box.set_margin_end(20)
-        main_box.set_margin_top(10)
-        main_box.set_margin_bottom(10)
+        main_box.set_margin_top(12)
+        main_box.set_margin_bottom(12)
 
-        # Header Title
-        lbl_title = Gtk.Label(label="📱 OmniRemote")
+        # Header Box with Logo + Title
+        header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        header_box.set_halign(Gtk.Align.CENTER)
+        header_box.set_margin_top(12)
+
+        if os.path.exists(self.icon_path):
+            try:
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(self.icon_path, 30, 30, True)
+                img_logo = Gtk.Image.new_from_pixbuf(pixbuf)
+                header_box.pack_start(img_logo, False, False, 0)
+            except Exception:
+                pass
+
+        lbl_title = Gtk.Label(label="OmniRemote")
         lbl_title.get_style_context().add_class("header-title")
-        main_box.pack_start(lbl_title, False, False, 0)
+        header_box.pack_start(lbl_title, False, False, 0)
+
+        main_box.pack_start(header_box, False, False, 0)
 
         lbl_sub = Gtk.Label(label="Escanea desde tu móvil (en la misma red WiFi)")
         lbl_sub.get_style_context().add_class("subtitle")
@@ -120,11 +161,22 @@ class LinuxTrayApp:
             img_qr = Gtk.Image.new_from_pixbuf(pixbuf)
             main_box.pack_start(img_qr, False, False, 6)
 
-        # Local URL Box
+        # Local URL Box with Quick Copy Button
+        url_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        url_box.get_style_context().add_class("url-box")
+
         lbl_url = Gtk.Label(label=self.local_url)
         lbl_url.set_selectable(True)
-        lbl_url.get_style_context().add_class("url-box")
-        main_box.pack_start(lbl_url, False, False, 4)
+        lbl_url.set_xalign(0.0)
+        lbl_url.get_style_context().add_class("url-text")
+        url_box.pack_start(lbl_url, True, True, 0)
+
+        self.btn_copy = Gtk.Button(label="📋 Copiar")
+        self.btn_copy.get_style_context().add_class("btn-copy")
+        self.btn_copy.connect("clicked", self._on_copy_clicked)
+        url_box.pack_start(self.btn_copy, False, False, 0)
+
+        main_box.pack_start(url_box, False, False, 4)
 
         # Status Label
         self.lbl_status = Gtk.Label(label="⚡ Listo para conectar")
@@ -139,11 +191,26 @@ class LinuxTrayApp:
 
         self.window.add(main_box)
 
+    def _on_copy_clicked(self, btn):
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        clipboard.set_text(self.local_url, -1)
+        clipboard.store()
+
+        btn.get_style_context().add_class("copied")
+        btn.set_label("✓ Copiado")
+
+        GLib.timeout_add(1800, self._reset_copy_btn, btn)
+
+    def _reset_copy_btn(self, btn):
+        btn.get_style_context().remove_class("copied")
+        btn.set_label("📋 Copiar")
+        return False
+
     def _build_tray_indicator(self):
-        # AyatanaAppIndicator
+        icon_name = self.icon_path if os.path.exists(self.icon_path) else "input-touchpad"
         self.indicator = appindicator.Indicator.new(
             "omniremote-indicator",
-            "input-touchpad",
+            icon_name,
             appindicator.IndicatorCategory.APPLICATION_STATUS
         )
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
@@ -173,7 +240,7 @@ class LinuxTrayApp:
 
     def _on_window_delete(self, widget, event):
         self.window.hide()
-        return True  # Do not destroy window
+        return True
 
     def _show_window(self, _):
         self.window.show_all()
