@@ -1,10 +1,10 @@
-# Maintainer: Marco <https://github.com/marc77mz>
+# Maintainer: Marco <https://github.com/frameix>
 pkgname=omniremote
-pkgver=1.0.0
+pkgver=1.1.0
 pkgrel=1
 pkgdesc="Zero-install local Wi-Fi web remote control for Linux (Trackpad, Keyboard, Presenter)"
 arch=('any')
-url="https://github.com/marc77mz/omniremote"
+url="https://github.com/frameix/omniremote"
 license=('MIT')
 depends=(
     'python'
