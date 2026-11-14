@@ -766,6 +766,8 @@
 
       ws.onopen = () => {
         statusDot.classList.add('connected');
+        showHUD('🟢 Conectado a la PC');
+        haptic(35);
         if (pingInterval) clearInterval(pingInterval);
         pingInterval = setInterval(() => send({ type: 'ping' }), 3000);
       };

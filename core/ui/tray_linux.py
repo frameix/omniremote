@@ -21,6 +21,10 @@ class LinuxTrayApp:
         self.on_quit_callback = on_quit_callback
         self.qr_path = os.path.join(tempfile.gettempdir(), "omniremote_qr.png")
         self.icon_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets", "omniremote-app.png")
+        self.auto_hide_timer = None
+        self.has_paired_once = False
+        self.clients_count = 0
+        self.countdown_remaining = 0
 
         self._generate_qr()
         self._build_floating_window()
@@ -119,9 +123,15 @@ class LinuxTrayApp:
         }
         .status-badge {
             font-size: 11px;
-            color: #3fb950;
+            color: #4facfe;
             font-weight: 600;
             margin-top: 4px;
+            transition: all 0.2s ease;
+        }
+        .status-connected {
+            color: #3fb950 !important;
+            font-weight: 700 !important;
+            font-size: 12px !important;
         }
         .btn-hide {
             background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
@@ -130,9 +140,20 @@ class LinuxTrayApp:
             border-radius: 8px;
             border: none;
             padding: 9px 18px;
+            transition: all 0.2s ease;
         }
         .btn-hide:hover {
             opacity: 0.9;
+        }
+        .btn-cancel-hide {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #e6edf3 !important;
+            font-weight: 600 !important;
+        }
+        .btn-cancel-hide:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.35) !important;
         }
         """
         css_provider.load_from_data(css)
@@ -209,11 +230,11 @@ class LinuxTrayApp:
         self.lbl_status.get_style_context().add_class("status-badge")
         main_box.pack_start(self.lbl_status, False, False, 2)
 
-        # Primary Action: Hide to tray
-        btn_hide = Gtk.Button(label="Ocultar a la Barra (Tray)")
-        btn_hide.get_style_context().add_class("btn-hide")
-        btn_hide.connect("clicked", lambda _: self.window.hide())
-        main_box.pack_start(btn_hide, False, False, 8)
+        # Primary Action: Hide to tray / Cancel auto-hide
+        self.btn_hide = Gtk.Button(label="Ocultar a la Barra (Tray)")
+        self.btn_hide.get_style_context().add_class("btn-hide")
+        self.btn_hide.connect("clicked", self._on_hide_btn_clicked)
+        main_box.pack_start(self.btn_hide, False, False, 8)
 
         self.window.add(main_box)
 
@@ -282,15 +303,79 @@ class LinuxTrayApp:
         clipboard.set_text(self.local_url, -1)
         clipboard.store()
 
+    def _on_hide_btn_clicked(self, _):
+        if self.auto_hide_timer is not None:
+            # Si el usuario hace clic durante la cuenta regresiva, cancela el auto-ocultado y mantiene la ventana abierta
+            GLib.source_remove(self.auto_hide_timer)
+            self.auto_hide_timer = None
+            self.btn_hide.set_label("Ocultar a la Barra (Tray)")
+            self.btn_hide.get_style_context().remove_class("btn-cancel-hide")
+            self.lbl_status.set_text(f"🟢 {self.clients_count} dispositivo(s) conectado(s)")
+            return
+
+        self.window.hide()
+
+    def _start_auto_hide_countdown(self):
+        if self.auto_hide_timer is not None:
+            GLib.source_remove(self.auto_hide_timer)
+        self.countdown_remaining = 3
+        self.btn_hide.set_label("Mantener Abierta (Cancelar)")
+        self.btn_hide.get_style_context().add_class("btn-cancel-hide")
+        self._tick_countdown()
+
+    def _tick_countdown(self):
+        if self.countdown_remaining > 0:
+            self.lbl_status.set_text(f"✅ ¡Móvil conectado! Ocultando en {self.countdown_remaining}s...")
+            self.countdown_remaining -= 1
+            self.auto_hide_timer = GLib.timeout_add(1000, self._tick_countdown)
+            return False
+        else:
+            self._do_auto_hide()
+            return False
+
+    def _do_auto_hide(self):
+        self.auto_hide_timer = None
+        self.btn_hide.set_label("Ocultar a la Barra (Tray)")
+        self.btn_hide.get_style_context().remove_class("btn-cancel-hide")
+        self.lbl_status.set_text(f"🟢 {self.clients_count} dispositivo(s) conectado(s)")
+        self.window.hide()
+
+        # Enviar notificación de escritorio amigable
+        if shutil.which("notify-send"):
+            try:
+                icon_arg = self.icon_path if os.path.exists(self.icon_path) else "input-touchpad"
+                subprocess.Popen([
+                    "notify-send",
+                    "-a", "OmniRemote",
+                    "-i", icon_arg,
+                    "📱 OmniRemote Conectado",
+                    "Tu teléfono está vinculado. Listo para controlar."
+                ])
+            except Exception:
+                pass
+
     def update_clients_count(self, count: int):
         GLib.idle_add(self._update_status_ui, count)
 
     def _update_status_ui(self, count: int):
+        self.clients_count = count
         if count > 0:
-            self.lbl_status.set_text(f"🟢 {count} dispositivo(s) conectado(s)")
             self.indicator.set_title(f"OmniRemote ({count})")
+            if not self.has_paired_once and self.window.is_visible():
+                self.has_paired_once = True
+                self.lbl_status.get_style_context().add_class("status-connected")
+                self._start_auto_hide_countdown()
+            elif self.auto_hide_timer is None:
+                self.lbl_status.set_text(f"🟢 {count} dispositivo(s) conectado(s)")
         else:
+            self.has_paired_once = False
+            if self.auto_hide_timer is not None:
+                GLib.source_remove(self.auto_hide_timer)
+                self.auto_hide_timer = None
+            self.lbl_status.get_style_context().remove_class("status-connected")
             self.lbl_status.set_text("⚡ Listo para conectar")
+            self.btn_hide.set_label("Ocultar a la Barra (Tray)")
+            self.btn_hide.get_style_context().remove_class("btn-cancel-hide")
             self.indicator.set_title("")
 
     def run(self):
