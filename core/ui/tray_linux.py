@@ -126,12 +126,11 @@ class LinuxTrayApp:
             color: #4facfe;
             font-weight: 600;
             margin-top: 4px;
-            transition: all 0.2s ease;
         }
         .status-connected {
-            color: #3fb950 !important;
-            font-weight: 700 !important;
-            font-size: 12px !important;
+            color: #3fb950;
+            font-weight: 700;
+            font-size: 12px;
         }
         .btn-hide {
             background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
@@ -140,20 +139,19 @@ class LinuxTrayApp:
             border-radius: 8px;
             border: none;
             padding: 9px 18px;
-            transition: all 0.2s ease;
         }
         .btn-hide:hover {
             opacity: 0.9;
         }
-        .btn-cancel-hide {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: #e6edf3 !important;
-            font-weight: 600 !important;
+        .btn-hide.btn-cancel-hide {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e6edf3;
+            font-weight: 600;
         }
-        .btn-cancel-hide:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.35) !important;
+        .btn-hide.btn-cancel-hide:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.35);
         }
         """
         css_provider.load_from_data(css)
@@ -289,6 +287,9 @@ class LinuxTrayApp:
         # Si se cierra la ventana con Super+Q o kill del compositor, apagar definitivamente
         self._quit(None)
         return True
+
+    def show_window(self):
+        GLib.idle_add(self._show_window, None)
 
     def _show_window(self, _):
         self.window.show_all()

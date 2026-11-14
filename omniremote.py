@@ -33,11 +33,28 @@ def get_input_driver():
         return LinuxUInput()
 
 
+def check_already_running(port: int) -> bool:
+    import urllib.request
+    try:
+        req = urllib.request.Request(f"http://127.0.0.1:{port}/api/show", headers={"User-Agent": "OmniRemote-Client"})
+        with urllib.request.urlopen(req, timeout=0.8) as resp:
+            if resp.status == 200:
+                return True
+    except Exception:
+        pass
+    return False
+
+
 def main():
     parser = argparse.ArgumentParser(description="OmniRemote - Zero-Install Web Remote")
     parser.add_argument("--port", type=int, default=8765, help="Puerto del servidor (default: 8765)")
     parser.add_argument("--cli", action="store_true", help="Modo terminal puro (sin ventana flotante ni tray)")
     args = parser.parse_args()
+
+    # Si ya hay una instancia corriendo en este puerto, pedirle que muestre la ventana y salir
+    if not args.cli and check_already_running(args.port):
+        print(f"✓ OmniRemote ya está en ejecución. Mostrando ventana existente en pantalla.")
+        return
 
     input_driver = get_input_driver()
     desktop_backend = get_desktop_backend(input_driver)
@@ -48,12 +65,17 @@ def main():
         if tray_app:
             tray_app.update_clients_count(count)
 
+    def on_show_request():
+        if tray_app:
+            tray_app.show_window()
+
     server = OmniServer(
         input_driver=input_driver,
         desktop_backend=desktop_backend,
         port=args.port,
         web_dir=os.path.join(BASE_DIR, "web"),
-        status_callback=on_status_change
+        status_callback=on_status_change,
+        show_callback=on_show_request
     )
 
     loop = asyncio.new_event_loop()

@@ -28,12 +28,13 @@ def get_local_ip() -> str:
 
 
 class OmniServer:
-    def __init__(self, input_driver, desktop_backend, port=8765, web_dir=None, status_callback=None):
+    def __init__(self, input_driver, desktop_backend, port=8765, web_dir=None, status_callback=None, show_callback=None):
         self.input_driver = input_driver
         self.desktop_backend = desktop_backend
         self.port = port
         self.web_dir = web_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "web")
         self.status_callback = status_callback
+        self.show_callback = show_callback
 
         self.action_queue = asyncio.Queue()
         self.clients = set()
@@ -174,6 +175,15 @@ class OmniServer:
 
             if headers.get("upgrade", "").lower() == "websocket":
                 await self._handle_websocket(reader, writer, headers)
+            elif path == "/api/show":
+                if self.show_callback:
+                    try:
+                        self.show_callback()
+                    except Exception:
+                        pass
+                writer.write(b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nOK")
+                await writer.drain()
+                writer.close()
             else:
                 await self._serve_static(writer, path)
         except Exception:
