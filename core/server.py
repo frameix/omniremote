@@ -119,13 +119,16 @@ class OmniServer:
             browser_classes = ("chrome", "brave", "firefox", "chromium", "zen", "vivaldi", "edge", "opera")
             is_browser = any(b in cls for b in browser_classes)
 
-            # 1. Google Slides / Presentaciones web: Ctrl + Enter inicia la presentación
-            if "google slides" in title or "slides.google" in title or (is_browser and any(w in title for w in ("slides", "presentaci", "diapositiva"))):
+            # 1. ONLYOFFICE Presentation (Requiere obligatoriamente Ctrl + F5 según documentación oficial)
+            if "onlyoffice" in cls or "onlyoffice" in title:
+                self.input_driver.key_combo(["ctrl"], "F5")
+            # 2. Google Slides / Presentaciones web: Ctrl + Enter inicia la presentación
+            elif "google slides" in title or "slides.google" in title or (is_browser and any(w in title for w in ("slides", "presentaci", "diapositiva"))):
                 self.input_driver.key_combo(["ctrl"], "Return")
-            # 2. Canva web: Ctrl + Alt + P
+            # 3. Canva web: Ctrl + Alt + P
             elif "canva" in title or (is_browser and "canva" in cls):
                 self.input_driver.key_combo(["ctrl", "alt"], "p")
-            # 3. Aplicaciones de escritorio (LibreOffice Impress, PowerPoint, PDF Okular/Evince): F5
+            # 4. Aplicaciones de escritorio (LibreOffice Impress, PowerPoint, PDF Okular/Evince): F5
             else:
                 self.input_driver.tap_key("F5")
         elif action_type == "workspace_next":

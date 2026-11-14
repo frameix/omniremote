@@ -213,16 +213,16 @@ class LinuxUInput(BaseInput):
             self._emit(self.kbd_fd, EV_KEY, m, 1)
         if mod_codes:
             self._emit(self.kbd_fd, EV_SYN, 0, 0)
-            time.sleep(0.015)
+            time.sleep(0.02)
 
         self._emit(self.kbd_fd, EV_KEY, code, 1)
         self._emit(self.kbd_fd, EV_SYN, 0, 0)
-        time.sleep(0.015)
+        time.sleep(0.025)
         self._emit(self.kbd_fd, EV_KEY, code, 0)
         self._emit(self.kbd_fd, EV_SYN, 0, 0)
 
         if mod_codes:
-            time.sleep(0.015)
+            time.sleep(0.02)
         for m in reversed(mod_codes):
             self._emit(self.kbd_fd, EV_KEY, m, 0)
         if mod_codes:
