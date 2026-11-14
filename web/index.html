@@ -582,6 +582,187 @@
     .nav-btn.active {
       color: var(--accent-cyan);
     }
+
+    /* Tab 4: Karaoke / Jukebox */
+    #tab-karaoke {
+      padding: 14px;
+      gap: 14px;
+      overflow-y: auto;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .karaoke-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .karaoke-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .karaoke-badge {
+      background: var(--accent-gradient);
+      color: #050508;
+      font-size: 10px;
+      font-weight: 800;
+      border-radius: 6px;
+      padding: 3px 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
+    }
+
+    .karaoke-current-body {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .karaoke-thumb {
+      width: 76px;
+      height: 48px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #181926;
+      flex-shrink: 0;
+      border: 1px solid var(--card-border);
+    }
+
+    .karaoke-current-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .karaoke-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .karaoke-dur {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+
+    .karaoke-search-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .karaoke-chip-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .karaoke-chip-label input {
+      accent-color: var(--accent-cyan);
+      width: 16px;
+      height: 16px;
+    }
+
+    .karaoke-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .karaoke-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.15s ease;
+    }
+
+    .karaoke-item:active {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .karaoke-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .karaoke-item-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .karaoke-item-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .karaoke-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-karaoke-act {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-karaoke-act:active {
+      transform: scale(0.94);
+    }
+
+    .btn-karaoke-play {
+      background: var(--accent-gradient);
+      color: #050508;
+      border: none;
+    }
+
+    .karaoke-empty {
+      padding: 20px 12px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+      border: 1px dashed var(--card-border);
+      border-radius: 12px;
+    }
   </style>
 </head>
 <body>
@@ -726,6 +907,59 @@
         <button class="btn-small" id="btn-media-toggle"><span style="font-size: 16px;">⏯️</span><span>Música</span></button>
       </div>
     </div>
+
+    <!-- TAB 4: KARAOKE / FIESTA -->
+    <div id="tab-karaoke" class="tab-content">
+      <!-- Now Playing Box -->
+      <div class="karaoke-card" id="karaoke-now-playing" style="display: none;">
+        <div class="karaoke-card-header">
+          <span class="karaoke-badge">▶️ Sonando Ahora</span>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-karaoke-act" id="btn-karaoke-next" title="Siguiente canción">⏭️ Siguiente</button>
+            <button class="btn-karaoke-act" id="btn-karaoke-stop" style="color: #ff5555;" title="Detener">⏹️</button>
+          </div>
+        </div>
+        <div class="karaoke-current-body">
+          <img id="karaoke-current-thumb" class="karaoke-thumb" src="" alt="Thumbnail" />
+          <div class="karaoke-current-info">
+            <div id="karaoke-current-title" class="karaoke-title">Título de la canción</div>
+            <div id="karaoke-current-dur" class="karaoke-dur">--:--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Section -->
+      <div class="karaoke-search-box">
+        <div style="display: flex; gap: 8px; width: 100%;">
+          <input type="text" id="karaoke-input" class="text-input" placeholder="Buscar canción, artista o video..." style="flex: 1;" />
+          <button id="btn-karaoke-search" class="btn-karaoke-act btn-karaoke-play" style="padding: 0 16px; font-weight: 700;">🔍</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+          <label class="karaoke-chip-label">
+            <input type="checkbox" id="chk-karaoke-mode" checked />
+            <span>🎤 Modo Karaoke (añadir pista instrumental)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Search Results List -->
+      <div id="karaoke-results-container" style="display: none;">
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;">Resultados</div>
+        <div id="karaoke-results-list" class="karaoke-list"></div>
+      </div>
+
+      <!-- Queue Section -->
+      <div class="karaoke-queue-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">
+            📋 Lista de Espera (<span id="karaoke-queue-count">0</span>)
+          </div>
+        </div>
+        <div id="karaoke-queue-list" class="karaoke-list">
+          <div class="karaoke-empty">La lista está vacía. ¡Busca una canción para cantar!</div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <nav>
@@ -740,6 +974,10 @@
     <button class="nav-btn" data-tab="tab-presenter">
       <span style="font-size: 18px;">📽️</span>
       <span>Diapositivas</span>
+    </button>
+    <button class="nav-btn" data-tab="tab-karaoke">
+      <span style="font-size: 18px;">🎤</span>
+      <span>Karaoke</span>
     </button>
   </nav>
 
@@ -770,6 +1008,13 @@
         haptic(35);
         if (pingInterval) clearInterval(pingInterval);
         pingInterval = setInterval(() => send({ type: 'ping' }), 3000);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          handleServerMessage(msg);
+        } catch (e) {}
       };
 
       ws.onclose = () => {
@@ -1353,6 +1598,189 @@
       flashElement(btn);
       haptic(25);
     });
+
+    // --- Karaoke & Rockola Controller ---
+    const karaokeInput = document.getElementById('karaoke-input');
+    const btnKaraokeSearch = document.getElementById('btn-karaoke-search');
+    const chkKaraokeMode = document.getElementById('chk-karaoke-mode');
+    const karaokeResultsContainer = document.getElementById('karaoke-results-container');
+    const karaokeResultsList = document.getElementById('karaoke-results-list');
+
+    const karaokeNowPlaying = document.getElementById('karaoke-now-playing');
+    const karaokeCurrentThumb = document.getElementById('karaoke-current-thumb');
+    const karaokeCurrentTitle = document.getElementById('karaoke-current-title');
+    const karaokeCurrentDur = document.getElementById('karaoke-current-dur');
+    const btnKaraokeNext = document.getElementById('btn-karaoke-next');
+    const btnKaraokeStop = document.getElementById('btn-karaoke-stop');
+
+    const karaokeQueueCount = document.getElementById('karaoke-queue-count');
+    const karaokeQueueList = document.getElementById('karaoke-queue-list');
+
+    function performKaraokeSearch() {
+      const q = (karaokeInput.value || '').trim();
+      if (!q) return;
+      karaokeResultsContainer.style.display = 'block';
+      karaokeResultsList.innerHTML = '<div class="karaoke-empty" style="border:none;">🔎 Buscando en YouTube...</div>';
+      send({
+        type: 'karaoke_search',
+        query: q,
+        karaoke: chkKaraokeMode.checked
+      });
+      haptic(20);
+    }
+
+    btnKaraokeSearch?.addEventListener('click', performKaraokeSearch);
+    karaokeInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        performKaraokeSearch();
+        karaokeInput.blur();
+      }
+    });
+
+    btnKaraokeNext?.addEventListener('click', () => {
+      send({ type: 'karaoke_next' });
+      haptic(25);
+      showHUD('⏭️ Siguiente canción');
+    });
+
+    btnKaraokeStop?.addEventListener('click', () => {
+      send({ type: 'karaoke_stop' });
+      haptic(25);
+      showHUD('⏹️ Karaoke detenido');
+    });
+
+    function handleServerMessage(msg) {
+      if (msg.type === 'karaoke_results') {
+        renderKaraokeResults(msg.results || []);
+      } else if (msg.type === 'karaoke_state') {
+        renderKaraokeState(msg.data || {});
+      }
+    }
+
+    function renderKaraokeResults(results) {
+      karaokeResultsContainer.style.display = 'block';
+      if (!results || results.length === 0) {
+        karaokeResultsList.innerHTML = '<div class="karaoke-empty">No se encontraron resultados. Prueba con otro título.</div>';
+        return;
+      }
+
+      karaokeResultsList.innerHTML = '';
+      results.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'karaoke-item';
+
+        const thumb = document.createElement('img');
+        thumb.className = 'karaoke-thumb';
+        thumb.src = item.thumb || '';
+        thumb.alt = 'thumb';
+        thumb.loading = 'lazy';
+
+        const info = document.createElement('div');
+        info.className = 'karaoke-item-info';
+        info.innerHTML = `
+          <div class="karaoke-item-title" title="${item.title}">${item.title}</div>
+          <div class="karaoke-item-sub">⏱️ ${item.duration}</div>
+        `;
+
+        const acts = document.createElement('div');
+        acts.className = 'karaoke-actions';
+
+        const btnPlay = document.createElement('button');
+        btnPlay.className = 'btn-karaoke-act btn-karaoke-play';
+        btnPlay.innerHTML = '▶️ Ya';
+        btnPlay.title = 'Reproducir de inmediato';
+        btnPlay.addEventListener('click', () => {
+          send({ type: 'karaoke_play_now', song: item });
+          haptic(35);
+          showHUD(`▶️ ${item.title}`);
+        });
+
+        const btnAdd = document.createElement('button');
+        btnAdd.className = 'btn-karaoke-act';
+        btnAdd.innerHTML = '➕ Cola';
+        btnAdd.title = 'Añadir a la lista de espera';
+        btnAdd.addEventListener('click', () => {
+          send({ type: 'karaoke_add_queue', song: item });
+          haptic(25);
+          showHUD(`➕ Añadido a la lista`);
+        });
+
+        acts.appendChild(btnPlay);
+        acts.appendChild(btnAdd);
+
+        row.appendChild(thumb);
+        row.appendChild(info);
+        row.appendChild(acts);
+        karaokeResultsList.appendChild(row);
+      });
+    }
+
+    function renderKaraokeState(state) {
+      const current = state.current;
+      const queue = state.queue || [];
+
+      // Actualizar tarjeta "Sonando Ahora"
+      if (current) {
+        karaokeNowPlaying.style.display = 'flex';
+        karaokeCurrentThumb.src = current.thumb || '';
+        karaokeCurrentTitle.textContent = current.title || 'Desconocido';
+        karaokeCurrentDur.textContent = `⏱️ ${current.duration || '--:--'}`;
+      } else {
+        karaokeNowPlaying.style.display = 'none';
+      }
+
+      // Actualizar cola
+      karaokeQueueCount.textContent = queue.length;
+      if (queue.length === 0) {
+        karaokeQueueList.innerHTML = '<div class="karaoke-empty">La lista está vacía. ¡Busca una canción para cantar!</div>';
+      } else {
+        karaokeQueueList.innerHTML = '';
+        queue.forEach((item, idx) => {
+          const row = document.createElement('div');
+          row.className = 'karaoke-item';
+
+          const num = document.createElement('div');
+          num.style.cssText = 'font-weight: 800; font-size: 13px; color: var(--accent-cyan); width: 20px; text-align: center;';
+          num.textContent = `${idx + 1}`;
+
+          const thumb = document.createElement('img');
+          thumb.className = 'karaoke-thumb';
+          thumb.style.width = '52px';
+          thumb.style.height = '34px';
+          thumb.src = item.thumb || '';
+          thumb.alt = 'thumb';
+          thumb.loading = 'lazy';
+
+          const info = document.createElement('div');
+          info.className = 'karaoke-item-info';
+          info.innerHTML = `
+            <div class="karaoke-item-title" title="${item.title}">${item.title}</div>
+            <div class="karaoke-item-sub">⏱️ ${item.duration}</div>
+          `;
+
+          const acts = document.createElement('div');
+          acts.className = 'karaoke-actions';
+
+          const btnDel = document.createElement('button');
+          btnDel.className = 'btn-karaoke-act';
+          btnDel.style.color = '#ef4444';
+          btnDel.innerHTML = '✕';
+          btnDel.title = 'Quitar de la lista';
+          btnDel.addEventListener('click', () => {
+            send({ type: 'karaoke_remove', index: idx });
+            haptic(20);
+          });
+
+          acts.appendChild(btnDel);
+
+          row.appendChild(num);
+          row.appendChild(thumb);
+          row.appendChild(info);
+          row.appendChild(acts);
+          karaokeQueueList.appendChild(row);
+        });
+      }
+    }
   </script>
 </body>
 </html>

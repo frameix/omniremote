@@ -12,6 +12,7 @@ import struct
 import subprocess
 import sys
 import time
+from .karaoke import KaraokeManager
 
 MAGIC = b"258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
@@ -40,9 +41,46 @@ class OmniServer:
         self.clients = set()
         self.is_running = False
         self._server = None
+        self._loop = None
+        self.karaoke = KaraokeManager(on_update=self._on_karaoke_update)
+
+    def _on_karaoke_update(self, state: dict):
+        if self._loop and self._loop.is_running():
+            self._loop.call_soon_threadsafe(self.broadcast_ws, {"type": "karaoke_state", "data": state})
+
+    def _make_ws_frame(self, payload: bytes) -> bytes:
+        length = len(payload)
+        b1 = 0x81  # FIN + Text Opcode
+        if length <= 125:
+            return bytes([b1, length]) + payload
+        elif length <= 65535:
+            return bytes([b1, 126]) + struct.pack(">H", length) + payload
+        else:
+            return bytes([b1, 127]) + struct.pack(">Q", length) + payload
+
+    def broadcast_ws(self, data: dict) -> None:
+        try:
+            raw = json.dumps(data).encode("utf-8")
+            frame = self._make_ws_frame(raw)
+            for writer in list(self.clients):
+                try:
+                    writer.write(frame)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+    def send_ws(self, writer, data: dict) -> None:
+        try:
+            raw = json.dumps(data).encode("utf-8")
+            frame = self._make_ws_frame(raw)
+            writer.write(frame)
+        except Exception:
+            pass
 
     async def start(self):
         self.is_running = True
+        self._loop = asyncio.get_running_loop()
         asyncio.create_task(self._action_worker())
         self._server = await asyncio.start_server(self._handle_client, "0.0.0.0", self.port)
         local_ip = get_local_ip()
@@ -54,6 +92,8 @@ class OmniServer:
 
     async def stop(self):
         self.is_running = False
+        if hasattr(self, 'karaoke') and self.karaoke:
+            self.karaoke.stop()
         if self._server:
             self._server.close()
             await self._server.wait_closed()
@@ -209,6 +249,9 @@ class OmniServer:
         if self.status_callback:
             self.status_callback(len(self.clients))
 
+        # Enviar estado actual del karaoke al conectarse
+        self.send_ws(writer, {"type": "karaoke_state", "data": self.karaoke.get_state()})
+
         try:
             while self.is_running:
                 data = await self._read_ws_frame(reader)
@@ -217,7 +260,7 @@ class OmniServer:
 
                 try:
                     msg = json.loads(data)
-                    self._dispatch_ws_message(msg)
+                    self._dispatch_ws_message(msg, writer)
                 except Exception:
                     pass
         except Exception:
@@ -231,7 +274,7 @@ class OmniServer:
             except Exception:
                 pass
 
-    def _dispatch_ws_message(self, msg):
+    def _dispatch_ws_message(self, msg, writer=None):
         mtype = msg.get("type")
         if mtype == "move":
             dx = msg.get("dx", 0)
@@ -279,6 +322,30 @@ class OmniServer:
         elif mtype == "media":
             action = msg.get("action")
             self.action_queue.put_nowait(("media", (action,)))
+        elif mtype == "karaoke_search":
+            query = msg.get("query", "")
+            is_karaoke = msg.get("karaoke", True)
+            if writer:
+                asyncio.create_task(self._async_karaoke_search(writer, query, is_karaoke))
+        elif mtype == "karaoke_add_queue":
+            song = msg.get("song")
+            if song:
+                self.karaoke.add_to_queue(song)
+        elif mtype == "karaoke_play_now":
+            song = msg.get("song")
+            if song:
+                self.karaoke.play_now(song)
+        elif mtype == "karaoke_next":
+            self.karaoke.play_next()
+        elif mtype == "karaoke_remove":
+            idx = msg.get("index", 0)
+            self.karaoke.remove_from_queue(idx)
+        elif mtype == "karaoke_stop":
+            self.karaoke.stop()
+
+    async def _async_karaoke_search(self, writer, query, is_karaoke):
+        results = await asyncio.to_thread(self.karaoke.search, query, is_karaoke)
+        self.send_ws(writer, {"type": "karaoke_results", "query": query, "results": results})
 
     async def _read_ws_frame(self, reader):
         head = await reader.read(2)
