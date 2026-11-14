@@ -266,10 +266,6 @@ class LinuxTrayApp:
         item_qr.connect("activate", self._show_window)
         menu.append(item_qr)
 
-        item_open = Gtk.MenuItem(label="🌐 Abrir en Navegador Local")
-        item_open.connect("activate", self._open_browser)
-        menu.append(item_open)
-
         item_copy = Gtk.MenuItem(label="📋 Copiar Enlace Móvil")
         item_copy.connect("activate", self._copy_url)
         menu.append(item_copy)
@@ -294,10 +290,6 @@ class LinuxTrayApp:
     def _show_window(self, _):
         self.window.show_all()
         self.window.present()
-
-    def _open_browser(self, _):
-        if shutil.which("xdg-open"):
-            subprocess.Popen(["xdg-open", self.local_url])
 
     def _copy_url(self, _):
         clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
