@@ -23,6 +23,18 @@ class GenericDesktop(BaseDesktop):
             self.input_driver.key_combo(["super"], key)
 
     def get_active_window(self) -> tuple[str, str]:
+        if sys.platform == "win32":
+            try:
+                import ctypes
+                hwnd = ctypes.windll.user32.GetForegroundWindow()
+                if hwnd:
+                    length = ctypes.windll.user32.GetWindowTextLengthW(hwnd)
+                    buf = ctypes.create_unicode_buffer(length + 1)
+                    ctypes.windll.user32.GetWindowTextW(hwnd, buf, length + 1)
+                    title = buf.value.lower()
+                    return "", title
+            except Exception:
+                pass
         return "", ""
 
     def toggle_fullscreen(self) -> None:
