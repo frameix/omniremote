@@ -61,3 +61,57 @@ class BaseDesktop(ABC):
             input_driver.key_combo(["ctrl", "shift"], "v")
         else:
             input_driver.key_combo(["ctrl"], "v")
+
+    def handle_media(self, cmd: str, input_driver) -> None:
+        """Handles global media playback and volume control with native tool fallbacks."""
+        import shutil
+        import subprocess
+
+        if cmd in ("play_pause", "toggle"):
+            if shutil.which("playerctl"):
+                try:
+                    subprocess.Popen(["playerctl", "play-pause"])
+                    return
+                except Exception:
+                    pass
+            input_driver.tap_key("PlayPause")
+        elif cmd in ("vol_up", "volume_up"):
+            if shutil.which("wpctl"):
+                try:
+                    subprocess.Popen(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%+"])
+                    return
+                except Exception:
+                    pass
+            input_driver.tap_key("VolumeUp")
+        elif cmd in ("vol_down", "volume_down"):
+            if shutil.which("wpctl"):
+                try:
+                    subprocess.Popen(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%-"])
+                    return
+                except Exception:
+                    pass
+            input_driver.tap_key("VolumeDown")
+        elif cmd in ("vol_mute", "mute"):
+            if shutil.which("wpctl"):
+                try:
+                    subprocess.Popen(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"])
+                    return
+                except Exception:
+                    pass
+            input_driver.tap_key("VolumeMute")
+        elif cmd == "next":
+            if shutil.which("playerctl"):
+                try:
+                    subprocess.Popen(["playerctl", "next"])
+                    return
+                except Exception:
+                    pass
+            input_driver.tap_key("NextSong")
+        elif cmd == "prev":
+            if shutil.which("playerctl"):
+                try:
+                    subprocess.Popen(["playerctl", "previous"])
+                    return
+                except Exception:
+                    pass
+            input_driver.tap_key("PrevSong")

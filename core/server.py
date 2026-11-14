@@ -114,24 +114,7 @@ class OmniServer:
             self.desktop_backend.toggle_fullscreen()
         elif action_type == "media":
             cmd = args[0]
-            self._handle_media_command(cmd)
-
-    def _handle_media_command(self, cmd):
-        if shutil.which("playerctl"):
-            if cmd == "toggle":
-                subprocess.Popen(["playerctl", "play-pause"])
-            elif cmd == "next":
-                subprocess.Popen(["playerctl", "next"])
-            elif cmd == "prev":
-                subprocess.Popen(["playerctl", "previous"])
-
-        if shutil.which("wpctl"):
-            if cmd == "vol_up":
-                subprocess.Popen(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%+"])
-            elif cmd == "vol_down":
-                subprocess.Popen(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%-"])
-            elif cmd == "vol_mute":
-                subprocess.Popen(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"])
+            self.desktop_backend.handle_media(cmd, self.input_driver)
 
     async def _handle_client(self, reader, writer):
         try:

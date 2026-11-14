@@ -49,6 +49,14 @@ KEY_MAP = {
     "F5": 63, "F6": 64, "F7": 65, "F8": 66,
     "F9": 67, "F10": 68, "F11": 87, "F12": 88,
 
+    # Media Keys
+    "PlayPause": 164, "XF86AudioPlay": 164, "XF86AudioPause": 164,
+    "NextSong": 163, "XF86AudioNext": 163,
+    "PrevSong": 165, "XF86AudioPrev": 165,
+    "VolumeMute": 113, "XF86AudioMute": 113,
+    "VolumeDown": 114, "XF86AudioLowerVolume": 114,
+    "VolumeUp": 115, "XF86AudioRaiseVolume": 115,
+
     # Modifiers
     "ctrl": 29, "Control_L": 29, "Control_R": 97,
     "shift": 42, "Shift_L": 42, "Shift_R": 54,
