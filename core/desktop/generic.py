@@ -13,10 +13,12 @@ class GenericDesktop(BaseDesktop):
         if not self.input_driver:
             return
 
-        # Windows workspace switch: Ctrl+Win+Left / Ctrl+Win+Right
+        # Windows: Cambiar entre programas/ventanas abiertas (Alt+Esc / Alt+Shift+Esc)
         if sys.platform == "win32":
-            key = "Right" if delta > 0 else "Left"
-            self.input_driver.key_combo(["ctrl", "win"], key)
+            if delta > 0:
+                self.input_driver.key_combo(["alt"], "Escape")
+            else:
+                self.input_driver.key_combo(["alt", "shift"], "Escape")
         else:
             # Linux GNOME / KDE generic fallback: Super+Page_Down / Super+Page_Up
             key = "Page_Down" if delta > 0 else "Page_Up"

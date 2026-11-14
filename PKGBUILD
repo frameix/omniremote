@@ -1,6 +1,6 @@
 # Maintainer: Marco <https://github.com/frameix>
 pkgname=omniremote
-pkgver=1.1.2
+pkgver=1.1.3
 pkgrel=1
 pkgdesc="Zero-install local Wi-Fi web remote control for Linux (Trackpad, Keyboard, Presenter)"
 arch=('any')

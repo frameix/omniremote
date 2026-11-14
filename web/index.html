@@ -864,18 +864,18 @@
   <main>
     <!-- TAB 1: TRACKPAD -->
     <div id="tab-trackpad" class="tab-content active">
-      <!-- Barra Superior Unificada: Escritorios y Portapapeles (Ahorra espacio vertical) -->
+      <!-- Barra Superior Unificada: Ventana/Escritorio y Portapapeles (Ahorra espacio vertical) -->
       <div class="trackpad-top-toolbar">
-        <button class="toolbar-pill-btn ws-btn" id="btn-ws-prev" title="Escritorio anterior">◀ Escritorio</button>
+        <button class="toolbar-pill-btn ws-btn" id="btn-ws-prev" title="Ventana o Escritorio anterior">◀ Ventana</button>
         <button class="toolbar-pill-btn action-pill-btn" id="btn-quick-copy" title="Copiar selección del PC">📋 Copiar</button>
         <button class="toolbar-pill-btn action-pill-btn" id="btn-quick-paste" title="Pegar texto en el PC">📄 Pegar</button>
-        <button class="toolbar-pill-btn ws-btn" id="btn-ws-next" title="Escritorio siguiente">Escritorio ▶</button>
+        <button class="toolbar-pill-btn ws-btn" id="btn-ws-next" title="Ventana o Escritorio siguiente">Ventana ▶</button>
       </div>
 
       <div id="touchpad-surface">
         <div id="hud-gesture" class="hud-gesture">⚡ Gestos</div>
         <div class="touchpad-hint" id="trackpad-hint">
-          <b>Tap + Arrastrar:</b> Seleccionar • <b>2 dedos:</b> Scroll / Zoom
+          <b>Tap:</b> Clic • <b>2 dedos:</b> Scroll • <b>3 dedos ↔:</b> Cambiar Ventana
         </div>
       </div>
 
@@ -1207,19 +1207,21 @@
       setTimeout(() => el.classList.remove('active-glow'), 180);
     }
 
-    // --- Quick Workspace Buttons (Sin notificaciones intrusivas, solo brillo y háptico) ---
+    // --- Quick Workspace / Window Buttons ---
     const btnWsPrev = document.getElementById('btn-ws-prev');
     const btnWsNext = document.getElementById('btn-ws-next');
 
     btnWsPrev.addEventListener('click', () => {
       send({ type: 'gesture', action: 'workspace_prev' });
       flashElement(btnWsPrev);
+      showHUD(currentPlatform === 'windows' ? '🪟 Ventana Anterior' : '⚡ Escritorio Anterior');
       haptic(35);
     });
 
     btnWsNext.addEventListener('click', () => {
       send({ type: 'gesture', action: 'workspace_next' });
       flashElement(btnWsNext);
+      showHUD(currentPlatform === 'windows' ? '🪟 Siguiente Ventana' : '⚡ Siguiente Escritorio');
       haptic(35);
     });
 
@@ -1420,10 +1422,13 @@
 
         if (Math.abs(deltaX) > 40) {
           gestureFired = true;
+          const isWin = currentPlatform === 'windows';
           if (deltaX < 0) {
             send({ type: 'gesture', action: 'workspace_next' });
+            showHUD(isWin ? '🪟 Siguiente Ventana' : '⚡ Siguiente Escritorio');
           } else {
             send({ type: 'gesture', action: 'workspace_prev' });
+            showHUD(isWin ? '🪟 Ventana Anterior' : '⚡ Escritorio Anterior');
           }
           haptic(40);
         }
@@ -1813,8 +1818,34 @@
       showHUD('⏹️ Karaoke detenido');
     });
 
+    let currentPlatform = 'linux';
+
+    function handleSystemInfo(info) {
+      if (!info) return;
+      currentPlatform = info.platform || 'linux';
+      const isWin = currentPlatform === 'windows';
+
+      const btnWsPrev = document.getElementById('btn-ws-prev');
+      const btnWsNext = document.getElementById('btn-ws-next');
+      if (btnWsPrev && btnWsNext) {
+        btnWsPrev.textContent = isWin ? '◀ Ventana' : '◀ Escritorio';
+        btnWsPrev.title = isWin ? 'Ventana/Programa anterior (Alt+Shift+Esc)' : 'Escritorio anterior';
+        btnWsNext.textContent = isWin ? 'Ventana ▶' : 'Escritorio ▶';
+        btnWsNext.title = isWin ? 'Ventana/Programa siguiente (Alt+Esc)' : 'Escritorio siguiente';
+      }
+
+      const hint = document.getElementById('trackpad-hint');
+      if (hint) {
+        hint.innerHTML = isWin
+          ? '<b>Tap:</b> Clic • <b>2 dedos:</b> Scroll • <b>3 dedos ↔:</b> Cambiar Ventana'
+          : '<b>Tap:</b> Clic • <b>2 dedos:</b> Scroll • <b>3 dedos ↔:</b> Cambiar Escritorio';
+      }
+    }
+
     function handleServerMessage(msg) {
-      if (msg.type === 'karaoke_results') {
+      if (msg.type === 'system_info') {
+        handleSystemInfo(msg);
+      } else if (msg.type === 'karaoke_results') {
         renderKaraokeResults(msg.results || []);
       } else if (msg.type === 'karaoke_state') {
         renderKaraokeState(msg.data || {});

@@ -249,7 +249,13 @@ class OmniServer:
         if self.status_callback:
             self.status_callback(len(self.clients))
 
-        # Enviar estado actual del karaoke al conectarse
+        # Enviar información del sistema y estado actual del karaoke al conectarse
+        platform_name = "windows" if sys.platform == "win32" else "linux"
+        self.send_ws(writer, {
+            "type": "system_info",
+            "platform": platform_name,
+            "desktop": self.desktop_backend.__class__.__name__
+        })
         self.send_ws(writer, {"type": "karaoke_state", "data": self.karaoke.get_state()})
 
         try:

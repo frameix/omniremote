@@ -121,13 +121,17 @@ async def run_all_tests():
     hs_resp = await ws_reader.readuntil(b"\r\n\r\n")
     assert b"101 Switching Protocols" in hs_resp, "Handshake WebSocket falló"
 
-    # Servidor debe enviar inmediatamente el estado inicial del karaoke
+    # Servidor debe enviar inmediatamente la información del sistema y estado inicial del karaoke
+    sys_frame = await read_raw_ws_server_frame(ws_reader)
+    sys_msg = json.loads(sys_frame)
+    assert sys_msg.get("type") == "system_info", f"Se esperaba system_info, se recibió {sys_msg}"
+
     initial_frame = await read_raw_ws_server_frame(ws_reader)
     initial_msg = json.loads(initial_frame)
     assert initial_msg.get("type") == "karaoke_state", f"Se esperaba karaoke_state, se recibió {initial_msg}"
     assert initial_msg.get("data", {}).get("current") is None
     assert initial_msg.get("data", {}).get("queue") == []
-    print("✓ TEST 2 PASÓ: Handshake WebSocket 101 OK y karaoke_state recibido.")
+    print("✓ TEST 2 PASÓ: Handshake WebSocket 101 OK, system_info y karaoke_state recibidos.")
 
     # --- TEST 3: Búsqueda en YouTube ---
     print("\n[TEST 3] Enviando búsqueda de canción (Selena - Como la Flor)...")

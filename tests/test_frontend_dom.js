@@ -58,6 +58,9 @@ const elements = {
   "tp-play": new MockElement("button", "tp-play"),
   "tp-next": new MockElement("button", "tp-next"),
   "tp-back": new MockElement("button", "tp-back"),
+  "btn-ws-prev": new MockElement("button", "btn-ws-prev"),
+  "btn-ws-next": new MockElement("button", "btn-ws-next"),
+  "trackpad-hint": new MockElement("div", "trackpad-hint"),
 };
 
 global.document = {
@@ -215,6 +218,36 @@ elements["tp-back"].click();
 if (sentMessages[sentMessages.length - 1].action !== "back") throw new Error("TP back falló");
 
 console.log("✓ TEST FRONTEND 7 PASO: Todos los botones del Deck (Prev, Play, Next, Vol+, Vol-, Mute) y Trackpad Mini Bar (Vol-, Vol+, Mute, Play, Next, Back) responden y alternan estado de reproducción.");
+
+// TEST 8: Adaptación Dinámica según Sistema Operativo (Windows vs Linux)
+console.log("\n[TEST FRONTEND 8] Probando adaptación de UI para Windows y Linux (system_info)...");
+// 1. Simular mensaje system_info de Windows
+handleServerMessage({
+  type: "system_info",
+  platform: "windows",
+  desktop: "GenericDesktop"
+});
+
+if (elements["btn-ws-prev"].textContent !== "◀ Ventana") throw new Error("Botón no adaptado a Windows (◀ Ventana)");
+if (elements["btn-ws-next"].textContent !== "Ventana ▶") throw new Error("Botón no adaptado a Windows (Ventana ▶)");
+if (!elements["trackpad-hint"].innerHTML.includes("Cambiar Ventana")) throw new Error("Hint no adaptado a Windows");
+
+elements["btn-ws-next"].click();
+const winNextMsg = sentMessages[sentMessages.length - 1];
+if (winNextMsg.type !== "gesture" || winNextMsg.action !== "workspace_next") throw new Error("Fallo en envío de workspace_next");
+
+// 2. Simular mensaje system_info de Linux
+handleServerMessage({
+  type: "system_info",
+  platform: "linux",
+  desktop: "HyprlandDesktop"
+});
+
+if (elements["btn-ws-prev"].textContent !== "◀ Escritorio") throw new Error("Botón no adaptado a Linux (◀ Escritorio)");
+if (elements["btn-ws-next"].textContent !== "Escritorio ▶") throw new Error("Botón no adaptado a Linux (Escritorio ▶)");
+if (!elements["trackpad-hint"].innerHTML.includes("Cambiar Escritorio")) throw new Error("Hint no adaptado a Linux");
+
+console.log("✓ TEST FRONTEND 8 PASO: La interfaz se adapta dinámicamente entre 'Ventana' (Windows) y 'Escritorio' (Linux), y menciona 3 dedos.");
 
 console.log("\n=======================================================");
 console.log("  TODOS LOS TESTS DE INTERFAZ Y BOTONES PASARON OK  ");
