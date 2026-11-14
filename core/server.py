@@ -114,9 +114,17 @@ class OmniServer:
             else:
                 self.input_driver.key_combo(["ctrl"], "c")
         elif action_type == "smart_present":
-            _, title = self.desktop_backend.get_active_window()
-            if any(w in title for w in ("presentaci", "diapositiva", "libreoffice", "impress", "google slides")):
-                self.input_driver.key_combo(["ctrl"], "F5")
+            cls, title = self.desktop_backend.get_active_window()
+            browser_classes = ("chrome", "brave", "firefox", "chromium", "zen", "vivaldi", "edge", "opera")
+            is_browser = any(b in cls for b in browser_classes)
+
+            # 1. Google Slides / Presentaciones web: Ctrl + Enter inicia la presentación
+            if "google slides" in title or "slides.google" in title or (is_browser and any(w in title for w in ("slides", "presentaci", "diapositiva"))):
+                self.input_driver.key_combo(["ctrl"], "Return")
+            # 2. Canva web: Ctrl + Alt + P
+            elif "canva" in title or (is_browser and "canva" in cls):
+                self.input_driver.key_combo(["ctrl", "alt"], "p")
+            # 3. Aplicaciones de escritorio (LibreOffice Impress, PowerPoint, PDF Okular/Evince): F5
             else:
                 self.input_driver.tap_key("F5")
         elif action_type == "workspace_next":
@@ -291,6 +299,8 @@ class OmniServer:
             self.action_queue.put_nowait(("smart_paste", ()))
         elif mtype == "smart_copy":
             self.action_queue.put_nowait(("smart_copy", ()))
+        elif mtype == "smart_present":
+            self.action_queue.put_nowait(("smart_present", ()))
         elif mtype == "gesture":
             action = msg.get("action")
             if action in ("workspace_next", "workspace_prev", "fullscreen"):
