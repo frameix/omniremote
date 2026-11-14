@@ -13,7 +13,8 @@ class MockElement {
     this.attributes = {};
     this.classList = {
       add: (c) => {},
-      remove: (c) => {}
+      remove: (c) => {},
+      toggle: (c, force) => {}
     };
   }
   addEventListener(event, fn) {
@@ -27,6 +28,7 @@ class MockElement {
     this.children.push(child);
   }
   setAttribute(k, v) { this.attributes[k] = v; }
+  querySelector(sel) { return new MockElement("span"); }
   blur() {}
 }
 
@@ -51,10 +53,11 @@ const elements = {
   "btn-deck-mute": new MockElement("button", "btn-deck-mute"),
   "btn-deck-vol-up": new MockElement("button", "btn-deck-vol-up"),
   "tp-vol-down": new MockElement("button", "tp-vol-down"),
+  "tp-vol-up": new MockElement("button", "tp-vol-up"),
   "tp-mute": new MockElement("button", "tp-mute"),
   "tp-play": new MockElement("button", "tp-play"),
-  "tp-vol-up": new MockElement("button", "tp-vol-up"),
   "tp-next": new MockElement("button", "tp-next"),
+  "tp-back": new MockElement("button", "tp-back"),
 };
 
 global.document = {
@@ -190,25 +193,28 @@ if (sentMessages[sentMessages.length - 1].action !== "prev") throw new Error("De
 
 elements["btn-deck-play"].click();
 if (sentMessages[sentMessages.length - 1].action !== "play_pause") throw new Error("Deck play falló");
-
-elements["btn-deck-next"].click();
-if (sentMessages[sentMessages.length - 1].action !== "next") throw new Error("Deck next falló");
-
-elements["btn-deck-vol-down"].click();
-if (sentMessages[sentMessages.length - 1].action !== "vol_down") throw new Error("Deck vol_down falló");
-
-elements["btn-deck-mute"].click();
-if (sentMessages[sentMessages.length - 1].action !== "mute") throw new Error("Deck mute falló");
-
-elements["btn-deck-vol-up"].click();
-if (sentMessages[sentMessages.length - 1].action !== "vol_up") throw new Error("Deck vol_up falló");
+if (elements["tp-play"].textContent !== "⏸️") throw new Error("Al dar play en Deck, tp-play debió sincronizar a pausa (⏸️)");
 
 elements["tp-play"].click();
 if (sentMessages[sentMessages.length - 1].action !== "play_pause") throw new Error("TP play falló");
+if (elements["tp-play"].textContent !== "▶️") throw new Error("Al pulsar tp-play, debió alternar a reproducir (▶️)");
+
+elements["tp-vol-down"].click();
+if (sentMessages[sentMessages.length - 1].action !== "vol_down") throw new Error("TP vol_down falló");
 
 elements["tp-vol-up"].click();
 if (sentMessages[sentMessages.length - 1].action !== "vol_up") throw new Error("TP vol_up falló");
-console.log("✓ TEST FRONTEND 7 PASO: Todos los botones del Deck (Prev, Play, Next, Vol+, Vol-, Mute) y Trackpad Mini Bar responden.");
+
+elements["tp-mute"].click();
+if (sentMessages[sentMessages.length - 1].action !== "mute") throw new Error("TP mute falló");
+
+elements["tp-next"].click();
+if (sentMessages[sentMessages.length - 1].action !== "next") throw new Error("TP next falló");
+
+elements["tp-back"].click();
+if (sentMessages[sentMessages.length - 1].action !== "back") throw new Error("TP back falló");
+
+console.log("✓ TEST FRONTEND 7 PASO: Todos los botones del Deck (Prev, Play, Next, Vol+, Vol-, Mute) y Trackpad Mini Bar (Vol-, Vol+, Mute, Play, Next, Back) responden y alternan estado de reproducción.");
 
 console.log("\n=======================================================");
 console.log("  TODOS LOS TESTS DE INTERFAZ Y BOTONES PASARON OK  ");

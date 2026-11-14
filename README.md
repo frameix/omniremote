@@ -85,7 +85,7 @@ yay -S omniremote-git
 #### B. Directo con `pacman` (Precompilado desde GitHub Releases):
 `pacman` puede instalar paquetes directamente desde una URL sin tener que compilar nada:
 ```bash
-sudo pacman -U https://github.com/frameix/omniremote/releases/latest/download/omniremote-1.1.1-1-any.pkg.tar.zst
+sudo pacman -U https://github.com/frameix/omniremote/releases/latest/download/omniremote-1.1.2-1-any.pkg.tar.zst
 ```
 
 #### C. Desde el repositorio clonado con `makepkg`:

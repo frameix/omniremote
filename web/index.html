@@ -122,44 +122,49 @@
 
     /* Tab 1: Trackpad */
     #tab-trackpad {
-      padding: 12px;
-      gap: 10px;
-    }
-
-    .workspace-bar {
-      display: flex;
+      padding: 10px;
       gap: 8px;
-      height: 40px;
     }
 
-    .ws-btn {
+    /* Top Utility Toolbar: Fusión de escritorios y portapapeles */
+    .trackpad-top-toolbar {
+      display: flex;
+      gap: 6px;
+      height: 32px;
+    }
+
+    .toolbar-pill-btn, .ws-btn, .action-pill-btn {
       flex: 1;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
+      border-radius: 9px;
       color: var(--text);
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 600;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 4px;
       cursor: pointer;
       transition: all 0.12s ease;
+      white-space: nowrap;
+      padding: 0 4px;
     }
 
-    .ws-btn:active, .ws-btn.active-glow {
+    .toolbar-pill-btn:active, .toolbar-pill-btn.active-glow,
+    .ws-btn:active, .ws-btn.active-glow,
+    .action-pill-btn:active {
       background: rgba(0, 242, 254, 0.22);
       border-color: var(--accent-cyan);
-      box-shadow: 0 0 18px rgba(0, 242, 254, 0.45);
+      box-shadow: 0 0 14px rgba(0, 242, 254, 0.4);
       transform: scale(0.96);
     }
 
     #touchpad-surface {
       flex: 1;
       background: radial-gradient(circle at center, rgba(30, 35, 55, 0.4) 0%, rgba(15, 18, 28, 0.85) 100%);
-      border: 1px solid rgba(79, 172, 254, 0.25);
-      border-radius: 20px;
+      border: 1px solid rgba(79, 172, 254, 0.22);
+      border-radius: 18px;
       position: relative;
       overflow: hidden;
       display: flex;
@@ -199,15 +204,22 @@
     }
 
     .touchpad-hint {
-      color: rgba(255, 255, 255, 0.35);
-      font-size: 12px;
+      color: rgba(255, 255, 255, 0.28);
+      font-size: 11px;
       text-align: center;
-      line-height: 1.6;
+      line-height: 1.5;
       pointer-events: none;
+      background: rgba(10, 12, 18, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 8px 14px;
+      border-radius: 12px;
+      backdrop-filter: blur(4px);
+      max-width: 85%;
+      transition: opacity 0.25s ease;
     }
 
     .touchpad-hint b {
-      color: rgba(0, 242, 254, 0.85);
+      color: rgba(0, 242, 254, 0.8);
     }
 
     /* Actions Bar */
@@ -217,38 +229,18 @@
       height: 38px;
     }
 
-    .action-pill-btn {
-      flex: 1;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      cursor: pointer;
-    }
-
-    .action-pill-btn:active {
-      background: rgba(79, 172, 254, 0.2);
-      transform: scale(0.96);
-    }
-
     /* Bottom Click Buttons */
     .click-bar {
-      height: 62px;
+      height: 48px;
       display: flex;
-      gap: 10px;
+      gap: 8px;
     }
 
     .mouse-btn {
       flex: 1;
       background: var(--card-bg);
       border: 1.5px solid var(--card-border);
-      border-radius: 16px;
+      border-radius: 14px;
       color: var(--text);
       font-weight: 700;
       font-size: 13px;
@@ -586,34 +578,36 @@
     /* Trackpad Mini Media Bar */
     .trackpad-media-bar {
       display: flex;
-      gap: 6px;
-      height: 38px;
-      margin-top: 2px;
+      gap: 5px;
+      height: 32px;
     }
 
     .mini-media-btn {
       flex: 1;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 10px;
+      border-radius: 8px;
       color: var(--text);
-      font-size: 15px;
+      font-size: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.12s ease;
+      padding: 0;
     }
 
     .mini-media-btn:active {
-      transform: scale(0.95);
+      transform: scale(0.93);
       background: rgba(255, 255, 255, 0.12);
     }
 
-    .mini-media-play {
-      background: rgba(0, 242, 254, 0.15);
-      border-color: rgba(0, 242, 254, 0.35);
-      color: var(--accent-cyan);
+    /* Brillo activo únicamente cuando la música está sonando */
+    .mini-media-btn.is-playing {
+      background: rgba(0, 242, 254, 0.2);
+      border-color: var(--accent-cyan);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
     }
 
     /* Tab 4: Multimedia & Karaoke Deck */
@@ -665,11 +659,20 @@
     }
 
     .btn-deck-play {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    /* Estado activo / sonando en el Deck */
+    .btn-deck-play.is-playing {
       background: var(--accent-gradient);
       color: #050508;
       border: none;
       font-weight: 800;
-      box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);
+      box-shadow: 0 0 18px rgba(0, 242, 254, 0.35);
     }
 
     .karaoke-card {
@@ -861,38 +864,34 @@
   <main>
     <!-- TAB 1: TRACKPAD -->
     <div id="tab-trackpad" class="tab-content active">
-      <div class="workspace-bar">
-        <button class="ws-btn" id="btn-ws-prev">◀ Escritorio Anterior</button>
-        <button class="ws-btn" id="btn-ws-next">Escritorio Siguiente ▶</button>
+      <!-- Barra Superior Unificada: Escritorios y Portapapeles (Ahorra espacio vertical) -->
+      <div class="trackpad-top-toolbar">
+        <button class="toolbar-pill-btn ws-btn" id="btn-ws-prev" title="Escritorio anterior">◀ Escritorio</button>
+        <button class="toolbar-pill-btn action-pill-btn" id="btn-quick-copy" title="Copiar selección del PC">📋 Copiar</button>
+        <button class="toolbar-pill-btn action-pill-btn" id="btn-quick-paste" title="Pegar texto en el PC">📄 Pegar</button>
+        <button class="toolbar-pill-btn ws-btn" id="btn-ws-next" title="Escritorio siguiente">Escritorio ▶</button>
       </div>
 
       <div id="touchpad-surface">
         <div id="hud-gesture" class="hud-gesture">⚡ Gestos</div>
         <div class="touchpad-hint" id="trackpad-hint">
-          <b>Tap + Tap y Arrastrar:</b> Seleccionar texto<br>
-          <b>Sostener Clic Izq:</b> Seleccionar con otro dedo<br>
-          <b>Pellizco (2 dedos):</b> Zoom In / Out<br>
-          <b>2 dedos swipe:</b> Scroll vertical / horiz
+          <b>Tap + Arrastrar:</b> Seleccionar • <b>2 dedos:</b> Scroll / Zoom
         </div>
       </div>
 
-      <div class="quick-copy-bar">
-        <button class="action-pill-btn" id="btn-quick-copy">📋 Copiar (Inteligente)</button>
-        <button class="action-pill-btn" id="btn-quick-paste">📄 Pegar (Inteligente)</button>
-      </div>
-
-      <!-- Mini Barra Multimedia Rápida -->
+      <!-- Mini Barra Multimedia Rápida (Orden: Vol-, Vol+, Mute, Play/Pausa, Next, Back) -->
       <div class="trackpad-media-bar">
-        <button class="mini-media-btn" id="tp-vol-down" title="Volumen -">🔉</button>
+        <button class="mini-media-btn" id="tp-vol-down" title="Bajar volumen">🔉</button>
+        <button class="mini-media-btn" id="tp-vol-up" title="Subir volumen">🔊</button>
         <button class="mini-media-btn" id="tp-mute" title="Silenciar">🔇</button>
-        <button class="mini-media-btn mini-media-play" id="tp-play" title="Play/Pausa">⏯️</button>
-        <button class="mini-media-btn" id="tp-vol-up" title="Volumen +">🔊</button>
+        <button class="mini-media-btn" id="tp-play" title="Play / Pausa">▶️</button>
         <button class="mini-media-btn" id="tp-next" title="Siguiente canción">⏭️</button>
+        <button class="mini-media-btn" id="tp-back" title="Canción anterior">⏮️</button>
       </div>
 
       <!-- Barra de Clics Físicos -->
       <div class="click-bar">
-        <button class="mouse-btn" id="btn-left-click">🖱️ Clic Izquierdo (Sostener)</button>
+        <button class="mouse-btn" id="btn-left-click">🖱️ Clic Izquierdo</button>
         <button class="mouse-btn" id="btn-right-click">Clic Derecho</button>
       </div>
     </div>
@@ -993,7 +992,7 @@
         <button class="btn-small" id="btn-vol-down"><span style="font-size: 16px;">🔉</span><span>Vol -</span></button>
         <button class="btn-small" id="btn-vol-up"><span style="font-size: 16px;">🔊</span><span>Vol +</span></button>
         <button class="btn-small" id="btn-vol-mute"><span style="font-size: 16px;">🔇</span><span>Mute</span></button>
-        <button class="btn-small" id="btn-media-toggle"><span style="font-size: 16px;">⏯️</span><span>Música</span></button>
+        <button class="btn-small" id="btn-media-toggle"><span class="play-icon" style="font-size: 16px;">▶️</span><span class="play-text">Música</span></button>
       </div>
     </div>
 
@@ -1010,8 +1009,8 @@
             <span>Anterior</span>
           </button>
           <button class="btn-deck-large btn-deck-play" id="btn-deck-play">
-            <span style="font-size: 26px;">⏯️</span>
-            <span>Play / Pausa</span>
+            <span class="play-icon" style="font-size: 26px;">▶️</span>
+            <span class="play-text">Reproducir</span>
           </button>
           <button class="btn-deck-large" id="btn-deck-next">
             <span style="font-size: 22px;">⏭️</span>
@@ -1501,14 +1500,47 @@
       haptic(25);
     });
 
-    // --- Media Controls (Universal Deck & Mini Bar) ---
-    function wireMediaButton(btnId, action, hapticMs = 20) {
+    // --- Media Controls & Dynamic State (Universal Deck & Mini Bar) ---
+    let isMediaPlaying = false;
+
+    function updateMediaPlayStatus(playing) {
+      isMediaPlaying = !!playing;
+
+      // 1. Trackpad Mini Bar
+      const tpPlay = document.getElementById('tp-play');
+      if (tpPlay) {
+        tpPlay.textContent = isMediaPlaying ? '⏸️' : '▶️';
+        tpPlay.title = isMediaPlaying ? 'Pausar' : 'Play / Pausa';
+        tpPlay.classList.toggle('is-playing', isMediaPlaying);
+      }
+
+      // 2. Multimedia Hub Deck
+      const deckPlay = document.getElementById('btn-deck-play');
+      if (deckPlay) {
+        const icon = deckPlay.querySelector('.play-icon') || deckPlay.firstElementChild;
+        const text = deckPlay.querySelector('.play-text') || deckPlay.lastElementChild;
+        if (icon) icon.textContent = isMediaPlaying ? '⏸️' : '▶️';
+        if (text) text.textContent = isMediaPlaying ? 'Pausar' : 'Reproducir';
+        deckPlay.classList.toggle('is-playing', isMediaPlaying);
+      }
+
+      // 3. Diapositivas
+      const presPlay = document.getElementById('btn-media-toggle');
+      if (presPlay) {
+        const icon = presPlay.querySelector('.play-icon') || presPlay.firstElementChild;
+        if (icon) icon.textContent = isMediaPlaying ? '⏸️' : '▶️';
+        presPlay.classList.toggle('is-playing', isMediaPlaying);
+      }
+    }
+
+    function wireMediaButton(btnId, action, hapticMs = 20, callback = null) {
       const el = document.getElementById(btnId);
       if (el) {
         el.addEventListener('click', () => {
           send({ type: 'media', action: action });
           flashElement(el);
           haptic(hapticMs);
+          if (typeof callback === 'function') callback();
         });
       }
     }
@@ -1517,18 +1549,19 @@
     wireMediaButton('btn-vol-up', 'vol_up');
     wireMediaButton('btn-vol-down', 'vol_down');
     wireMediaButton('btn-vol-mute', 'mute', 25);
-    wireMediaButton('btn-media-toggle', 'play_pause', 25);
+    wireMediaButton('btn-media-toggle', 'play_pause', 25, () => updateMediaPlayStatus(!isMediaPlaying));
 
-    // Trackpad Mini Bar
+    // Trackpad Mini Bar (Orden exacto: vol-, vol+, mute, play/pause, next, back)
     wireMediaButton('tp-vol-down', 'vol_down');
-    wireMediaButton('tp-mute', 'mute', 25);
-    wireMediaButton('tp-play', 'play_pause', 25);
     wireMediaButton('tp-vol-up', 'vol_up');
+    wireMediaButton('tp-mute', 'mute', 25);
+    wireMediaButton('tp-play', 'play_pause', 25, () => updateMediaPlayStatus(!isMediaPlaying));
     wireMediaButton('tp-next', 'next', 25);
+    wireMediaButton('tp-back', 'back', 25);
 
     // Multimedia Hub Deck
     wireMediaButton('btn-deck-prev', 'prev', 25);
-    wireMediaButton('btn-deck-play', 'play_pause', 30);
+    wireMediaButton('btn-deck-play', 'play_pause', 30, () => updateMediaPlayStatus(!isMediaPlaying));
     wireMediaButton('btn-deck-next', 'next', 25);
     wireMediaButton('btn-deck-vol-down', 'vol_down');
     wireMediaButton('btn-deck-mute', 'mute', 25);
@@ -1775,6 +1808,7 @@
 
     btnKaraokeStop?.addEventListener('click', () => {
       send({ type: 'karaoke_stop' });
+      updateMediaPlayStatus(false);
       haptic(25);
       showHUD('⏹️ Karaoke detenido');
     });
@@ -1855,8 +1889,10 @@
         karaokeCurrentThumb.src = current.thumb || '';
         karaokeCurrentTitle.textContent = current.title || 'Desconocido';
         karaokeCurrentDur.textContent = `⏱️ ${current.duration || '--:--'}`;
+        updateMediaPlayStatus(true);
       } else {
         karaokeNowPlaying.style.display = 'none';
+        updateMediaPlayStatus(false);
       }
 
       // Actualizar cola
