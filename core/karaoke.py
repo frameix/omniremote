@@ -90,12 +90,14 @@ class KaraokeManager:
 
     def add_to_queue(self, song: dict) -> None:
         with self._lock:
-            self.queue.append(song)
             should_start = self.current_song is None
-        self._notify()
+            if not should_start:
+                self.queue.append(song)
 
         if should_start:
-            self.play_next()
+            self.play_now(song)
+        else:
+            self._notify()
 
     def play_now(self, song: dict) -> None:
         self._stop_current_process()
