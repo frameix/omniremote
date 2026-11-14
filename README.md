@@ -41,7 +41,8 @@
    - **Live Typing con Delta Tracking:** Algoritmo de sincronización diferencial que evita la duplicación de texto en teclados móviles inteligentes (Gboard, Samsung Keyboard, iOS).
    - **Caja de texto auto-expandible:** Diseño estilo mensajería (1 a 8 líneas) con botón de envío rápido.
    - **Macros y atajos de terminal:** Teclas dedicadas para `Esc`, `Tab`, `Ctrl+C` (interrupción), flechas direccionales, `Ctrl+Shift+C` y `Ctrl+Shift+V`.
-   - **Modo Presentador:** Botones para diapositiva anterior/siguiente, cronómetro integrado para conferencias y control de volumen.
+   - **Modo Presentador y Multimedia Universal:** Botones para diapositiva anterior/siguiente (soporte F5 / Ctrl+F5 para Google Slides), cronómetro integrado para conferencias y Deck Multimedia universal (Play/Pausa, Anterior, Siguiente, Volumen +, -, Silenciar) tanto en pestaña dedicada como en mini-barra ergonómica en el trackpad.
+   - **Jukebox de Karaoke & YouTube en Red:** Búsqueda en vivo de pistas sin API keys de Google Cloud, cola colaborativa en tiempo real ("Sonando Ahora" y lista de espera) para fiestas y presentaciones sin pantalla negra.
 
 ---
 
@@ -84,7 +85,7 @@ yay -S omniremote-git
 #### B. Directo con `pacman` (Precompilado desde GitHub Releases):
 `pacman` puede instalar paquetes directamente desde una URL sin tener que compilar nada:
 ```bash
-sudo pacman -U https://github.com/frameix/omniremote/releases/latest/download/omniremote-1.0.0-1-any.pkg.tar.zst
+sudo pacman -U https://github.com/frameix/omniremote/releases/latest/download/omniremote-1.1.1-1-any.pkg.tar.zst
 ```
 
 #### C. Desde el repositorio clonado con `makepkg`:

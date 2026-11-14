@@ -583,13 +583,93 @@
       color: var(--accent-cyan);
     }
 
-    /* Tab 4: Karaoke / Jukebox */
+    /* Trackpad Mini Media Bar */
+    .trackpad-media-bar {
+      display: flex;
+      gap: 6px;
+      height: 38px;
+      margin-top: 2px;
+    }
+
+    .mini-media-btn {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+
+    .mini-media-btn:active {
+      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .mini-media-play {
+      background: rgba(0, 242, 254, 0.15);
+      border-color: rgba(0, 242, 254, 0.35);
+      color: var(--accent-cyan);
+    }
+
+    /* Tab 4: Multimedia & Karaoke Deck */
     #tab-karaoke {
       padding: 14px;
       gap: 14px;
       overflow-y: auto;
       touch-action: pan-y;
       -webkit-overflow-scrolling: touch;
+    }
+
+    .media-deck-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .media-deck-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-deck-large {
+      flex: 1;
+      height: 52px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-deck-large:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-deck-play {
+      background: var(--accent-gradient);
+      color: #050508;
+      border: none;
+      font-weight: 800;
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);
     }
 
     .karaoke-card {
@@ -801,6 +881,15 @@
         <button class="action-pill-btn" id="btn-quick-paste">📄 Pegar (Inteligente)</button>
       </div>
 
+      <!-- Mini Barra Multimedia Rápida -->
+      <div class="trackpad-media-bar">
+        <button class="mini-media-btn" id="tp-vol-down" title="Volumen -">🔉</button>
+        <button class="mini-media-btn" id="tp-mute" title="Silenciar">🔇</button>
+        <button class="mini-media-btn mini-media-play" id="tp-play" title="Play/Pausa">⏯️</button>
+        <button class="mini-media-btn" id="tp-vol-up" title="Volumen +">🔊</button>
+        <button class="mini-media-btn" id="tp-next" title="Siguiente canción">⏭️</button>
+      </div>
+
       <!-- Barra de Clics Físicos -->
       <div class="click-bar">
         <button class="mouse-btn" id="btn-left-click">🖱️ Clic Izquierdo (Sostener)</button>
@@ -908,8 +997,45 @@
       </div>
     </div>
 
-    <!-- TAB 4: KARAOKE / FIESTA -->
+    <!-- TAB 4: MULTIMEDIA & KARAOKE -->
     <div id="tab-karaoke" class="tab-content">
+      <!-- Media Control Deck (Universal: Spotify, YouTube, VLC, System Volume) -->
+      <div class="media-deck-card">
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Control de Medios y Volumen</div>
+        
+        <!-- Fila de Reproducción: Anterior, Play/Pause, Siguiente -->
+        <div class="media-deck-row">
+          <button class="btn-deck-large" id="btn-deck-prev">
+            <span style="font-size: 22px;">⏮️</span>
+            <span>Anterior</span>
+          </button>
+          <button class="btn-deck-large btn-deck-play" id="btn-deck-play">
+            <span style="font-size: 26px;">⏯️</span>
+            <span>Play / Pausa</span>
+          </button>
+          <button class="btn-deck-large" id="btn-deck-next">
+            <span style="font-size: 22px;">⏭️</span>
+            <span>Siguiente</span>
+          </button>
+        </div>
+
+        <!-- Fila de Audio: Vol -, Mute, Vol + -->
+        <div class="media-deck-row">
+          <button class="btn-deck-large" id="btn-deck-vol-down">
+            <span style="font-size: 20px;">🔉</span>
+            <span>Vol -</span>
+          </button>
+          <button class="btn-deck-large" id="btn-deck-mute">
+            <span style="font-size: 20px;">🔇</span>
+            <span>Mute</span>
+          </button>
+          <button class="btn-deck-large" id="btn-deck-vol-up">
+            <span style="font-size: 20px;">🔊</span>
+            <span>Vol +</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Now Playing Box -->
       <div class="karaoke-card" id="karaoke-now-playing" style="display: none;">
         <div class="karaoke-card-header">
@@ -976,8 +1102,8 @@
       <span>Diapositivas</span>
     </button>
     <button class="nav-btn" data-tab="tab-karaoke">
-      <span style="font-size: 18px;">🎤</span>
-      <span>Karaoke</span>
+      <span style="font-size: 18px;">🎵</span>
+      <span>Multimedia</span>
     </button>
   </nav>
 
@@ -1375,34 +1501,38 @@
       haptic(25);
     });
 
-    const btnVolUp = document.getElementById('btn-vol-up');
-    const btnVolDown = document.getElementById('btn-vol-down');
-    const btnVolMute = document.getElementById('btn-vol-mute');
-    const btnMedia = document.getElementById('btn-media-toggle');
+    // --- Media Controls (Universal Deck & Mini Bar) ---
+    function wireMediaButton(btnId, action, hapticMs = 20) {
+      const el = document.getElementById(btnId);
+      if (el) {
+        el.addEventListener('click', () => {
+          send({ type: 'media', action: action });
+          flashElement(el);
+          haptic(hapticMs);
+        });
+      }
+    }
 
-    btnVolUp.addEventListener('click', () => {
-      send({ type: 'media', action: 'vol_up' });
-      flashElement(btnVolUp);
-      haptic(20);
-    });
+    // Diapositivas
+    wireMediaButton('btn-vol-up', 'vol_up');
+    wireMediaButton('btn-vol-down', 'vol_down');
+    wireMediaButton('btn-vol-mute', 'mute', 25);
+    wireMediaButton('btn-media-toggle', 'play_pause', 25);
 
-    btnVolDown.addEventListener('click', () => {
-      send({ type: 'media', action: 'vol_down' });
-      flashElement(btnVolDown);
-      haptic(20);
-    });
+    // Trackpad Mini Bar
+    wireMediaButton('tp-vol-down', 'vol_down');
+    wireMediaButton('tp-mute', 'mute', 25);
+    wireMediaButton('tp-play', 'play_pause', 25);
+    wireMediaButton('tp-vol-up', 'vol_up');
+    wireMediaButton('tp-next', 'next', 25);
 
-    btnVolMute.addEventListener('click', () => {
-      send({ type: 'media', action: 'mute' });
-      flashElement(btnVolMute);
-      haptic(25);
-    });
-
-    btnMedia.addEventListener('click', () => {
-      send({ type: 'media', action: 'play_pause' });
-      flashElement(btnMedia);
-      haptic(25);
-    });
+    // Multimedia Hub Deck
+    wireMediaButton('btn-deck-prev', 'prev', 25);
+    wireMediaButton('btn-deck-play', 'play_pause', 30);
+    wireMediaButton('btn-deck-next', 'next', 25);
+    wireMediaButton('btn-deck-vol-down', 'vol_down');
+    wireMediaButton('btn-deck-mute', 'mute', 25);
+    wireMediaButton('btn-deck-vol-up', 'vol_up');
 
     // --- Presentation Timer ---
     let timerInterval = null;

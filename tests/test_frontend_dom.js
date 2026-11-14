@@ -44,7 +44,17 @@ const elements = {
   "btn-karaoke-stop": new MockElement("button", "btn-karaoke-stop"),
   "karaoke-queue-count": new MockElement("span", "karaoke-queue-count"),
   "karaoke-queue-list": new MockElement("div", "karaoke-queue-list"),
-  "hud-gesture": new MockElement("div", "hud-gesture"),
+  "btn-deck-prev": new MockElement("button", "btn-deck-prev"),
+  "btn-deck-play": new MockElement("button", "btn-deck-play"),
+  "btn-deck-next": new MockElement("button", "btn-deck-next"),
+  "btn-deck-vol-down": new MockElement("button", "btn-deck-vol-down"),
+  "btn-deck-mute": new MockElement("button", "btn-deck-mute"),
+  "btn-deck-vol-up": new MockElement("button", "btn-deck-vol-up"),
+  "tp-vol-down": new MockElement("button", "tp-vol-down"),
+  "tp-mute": new MockElement("button", "tp-mute"),
+  "tp-play": new MockElement("button", "tp-play"),
+  "tp-vol-up": new MockElement("button", "tp-vol-up"),
+  "tp-next": new MockElement("button", "tp-next"),
 };
 
 global.document = {
@@ -172,6 +182,33 @@ const stopMsg = sentMessages[sentMessages.length - 1];
 console.log("   Mensaje al presionar Detener:", stopMsg);
 if (stopMsg.type !== "karaoke_stop") throw new Error("Fallo en Detener");
 console.log("✓ TEST FRONTEND 6 PASO: Los botones 'Siguiente' y 'Detener' funcionan al 100%.");
+
+// TEST 7: Probar botones del Deck Multimedia y Trackpad Mini Bar
+console.log("\n[TEST FRONTEND 7] Probando botones universales (Deck Multimedia & Trackpad Mini Bar)...");
+elements["btn-deck-prev"].click();
+if (sentMessages[sentMessages.length - 1].action !== "prev") throw new Error("Deck prev falló");
+
+elements["btn-deck-play"].click();
+if (sentMessages[sentMessages.length - 1].action !== "play_pause") throw new Error("Deck play falló");
+
+elements["btn-deck-next"].click();
+if (sentMessages[sentMessages.length - 1].action !== "next") throw new Error("Deck next falló");
+
+elements["btn-deck-vol-down"].click();
+if (sentMessages[sentMessages.length - 1].action !== "vol_down") throw new Error("Deck vol_down falló");
+
+elements["btn-deck-mute"].click();
+if (sentMessages[sentMessages.length - 1].action !== "mute") throw new Error("Deck mute falló");
+
+elements["btn-deck-vol-up"].click();
+if (sentMessages[sentMessages.length - 1].action !== "vol_up") throw new Error("Deck vol_up falló");
+
+elements["tp-play"].click();
+if (sentMessages[sentMessages.length - 1].action !== "play_pause") throw new Error("TP play falló");
+
+elements["tp-vol-up"].click();
+if (sentMessages[sentMessages.length - 1].action !== "vol_up") throw new Error("TP vol_up falló");
+console.log("✓ TEST FRONTEND 7 PASO: Todos los botones del Deck (Prev, Play, Next, Vol+, Vol-, Mute) y Trackpad Mini Bar responden.");
 
 console.log("\n=======================================================");
 console.log("  TODOS LOS TESTS DE INTERFAZ Y BOTONES PASARON OK  ");

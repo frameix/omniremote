@@ -99,7 +99,7 @@ class BaseDesktop(ABC):
                 except Exception:
                     pass
             input_driver.tap_key("VolumeMute")
-        elif cmd == "next":
+        elif cmd in ("next", "next_song"):
             if shutil.which("playerctl"):
                 try:
                     subprocess.Popen(["playerctl", "next"])
@@ -107,7 +107,7 @@ class BaseDesktop(ABC):
                 except Exception:
                     pass
             input_driver.tap_key("NextSong")
-        elif cmd == "prev":
+        elif cmd in ("prev", "previous", "back", "prev_song"):
             if shutil.which("playerctl"):
                 try:
                     subprocess.Popen(["playerctl", "previous"])

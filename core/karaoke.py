@@ -157,34 +157,9 @@ class KaraokeManager:
         if not vid:
             return
 
-        yt_url = f"https://www.youtube.com/watch?v={vid}"
-
-        if shutil.which("mpv"):
-            try:
-                cmd = [
-                    "mpv",
-                    "--fs",
-                    "--force-window=immediate",
-                    f"--title=OmniRemote Karaoke - {song.get('title', '')}",
-                    yt_url,
-                ]
-                self.process = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
-                threading.Thread(
-                    target=self._watch_player,
-                    args=(self.process, song),
-                    daemon=True,
-                ).start()
-                return
-            except Exception as e:
-                print(f"[Karaoke] Error al iniciar mpv: {e}")
-
-        # Fallback to browser
+        yt_url = f"https://www.youtube.com/watch?v={vid}&autoplay=1"
         try:
-            webbrowser.open(f"{yt_url}&autoplay=1")
+            webbrowser.open(yt_url)
         except Exception as e:
             print(f"[Karaoke] Error al abrir navegador: {e}")
 
